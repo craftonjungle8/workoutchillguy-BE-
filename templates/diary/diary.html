@@ -32,6 +32,22 @@
       추가
     </button>
 
+    <!-- 운동 종류 선택 (원 형태의 체크박스) -->
+    <div class="absolute top-12 left-4 flex flex-col space-y-4">
+      <div class="flex items-center space-x-2">
+        <input type="checkbox" id="exercise1" class="w-4 h-4 rounded-full">
+        <label for="exercise1" class="text-gray-800">운동1</label>
+      </div>
+      <div class="flex items-center space-x-2">
+        <input type="checkbox" id="exercise2" class="w-4 h-4 rounded-full">
+        <label for="exercise2" class="text-gray-800">운동2</label>
+      </div>
+      <div class="flex items-center space-x-2">
+        <input type="checkbox" id="exercise3" class="w-4 h-4 rounded-full">
+        <label for="exercise3" class="text-gray-800">운동3</label>
+      </div>
+    </div>
+
     <!-- 무게, 횟수, 세트 버튼 (추가 버튼 오른쪽 아래) -->
     <div class="absolute top-20 right-12 flex space-x-10">
       <button class="bg-[#25552A] text-white text-lg px-4 py-2 rounded-md">
@@ -45,10 +61,10 @@
       </button>
     </div>
 
-    <!-- 무게 드롭다운 (5kg 단위로 100kg까지) -->
-    <div class="absolute top-36 right-4 flex flex-col items-start space-y-4">
+    <!-- 무게, 횟수, 세트 드롭다운 (가로로 나열) -->
+    <div class="absolute top-36 right-4 flex space-x-10">
+      <!-- 무게 드롭다운 -->
       <select class="bg-[#38773E] text-white text-lg px-4 py-2 rounded-md border border-gray-300">
-        <!-- 5kg 단위로 100kg까지 -->
         <option value="5">5kg</option>
         <option value="10">10kg</option>
         <option value="15">15kg</option>
@@ -69,6 +85,25 @@
         <option value="90">90kg</option>
         <option value="95">95kg</option>
         <option value="100">100kg</option>
+      </select>
+
+      <!-- 횟수 드롭다운 -->
+      <select class="bg-[#38773E] text-white text-lg px-4 py-2 rounded-md border border-gray-300">
+        <option value="20">20회</option>
+      </select>
+
+      <!-- 세트 드롭다운 (10세트까지) -->
+      <select class="bg-[#38773E] text-white text-lg px-4 py-2 rounded-md border border-gray-300">
+        <option value="1">1세트</option>
+        <option value="2">2세트</option>
+        <option value="3">3세트</option>
+        <option value="4">4세트</option>
+        <option value="5">5세트</option>
+        <option value="6">6세트</option>
+        <option value="7">7세트</option>
+        <option value="8">8세트</option>
+        <option value="9">9세트</option>
+        <option value="10">10세트</option>
       </select>
     </div>
   </div>

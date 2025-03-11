@@ -15,9 +15,10 @@
   <div class="w-[1017px] h-[94px] bg-white p-4 flex justify-between items-center border-b border-gray-300">
     <div class="text-3xl font-bold text-gray-800">오운완</div>
     <div class="flex space-x-6 text-sm text-gray-800"> 
-      <a href="/mate-search" class="text-[#38773E] hover:text-[#2E5F31] font-semibold">메이트찾기</a>
-      <a href="/mypage" class="text-gray-800 hover:text-[#38773E]">마이페이지</a>
-      <a href="/logout" class="text-gray-800 hover:text-[#38773E]">로그아웃</a>
+      <!-- 메이트찾기, 마이페이지, 로그아웃 링크에 hover 효과 추가 -->
+      <a href="/mate-search" class="text-[#38773E] hover:text-[#2E5F31] font-semibold transition duration-300">메이트찾기</a>
+      <a href="/mypage" class="text-gray-800 hover:text-[#38773E] transition duration-300">마이페이지</a>
+      <a href="#" id="logoutBtn" class="text-gray-800 hover:text-[#38773E] transition duration-300">로그아웃</a>
     </div>
   </div>
   
@@ -78,6 +79,20 @@
     document.getElementById("githubIcon").addEventListener("click", function() {
       const dropdown = document.getElementById("githubDropdown");
       dropdown.classList.toggle("hidden");
+    });
+
+    // 로그아웃 버튼 클릭 시 엑세스 토큰 삭제 및 로그인 페이지로 리다이렉트
+    document.getElementById("logoutBtn").addEventListener("click", function(e) {
+      e.preventDefault();
+      
+      // 로컬 스토리지에서 JWT 엑세스 토큰 삭제
+      localStorage.removeItem('access_token');
+      
+      // 쿠키에서 토큰 삭제 (필요시 사용)
+      // document.cookie = 'access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      
+      // 로그아웃 후 로그인 페이지로 리다이렉트
+      window.location.href = '/login'; // 로그인 페이지로 이동
     });
   </script>
 

@@ -12,9 +12,23 @@
             box-shadow: none;
         }
     </style>
+    <!-- FontAwesome CSS CDN -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
-    <div class="bg-white p-8 rounded-xl shadow-lg w-[600px]">
+<body class="s flex flex-col items-center min-h-screen">
+
+    <!-- 상단 오운완 박스 -->
+    <div class="w-[1017px] h-[94px] bg-white p-4 flex justify-between items-center border-b border-gray-300">
+        <div class="text-3xl font-bold text-gray-800">오운완</div>
+        <div class="flex space-x-6 text-sm text-gray-800"> 
+            <!-- 메이트찾기, 마이페이지, 로그아웃 링크에 hover 효과 추가 -->
+            <a href="/mate-search" class="text-[#38773E] hover:text-[#2E5F31] font-semibold transition duration-300">메이트찾기</a>
+            <a href="/mypage" class="text-gray-800 hover:text-[#38773E] transition duration-300">마이페이지</a>
+            <a href="#" id="logoutBtn" class="text-gray-800 hover:text-[#38773E] transition duration-300">로그아웃</a>
+        </div>
+    </div>
+
+    <div class="bg-gray-100 p-8 rounded-xl shadow-lg w-[600px] mt-10">
         <h2 class="text-2xl font-bold mb-4 text-center text">게시글 작성</h2>
         
         <form id="postForm" class="flex flex-col items-center">
@@ -25,6 +39,34 @@
         </form>
         
         <p id="message" class="mt-4 text-center text-red-500 hidden"></p>
+    </div>
+
+    <!-- 최하단 고정 박스 -->
+    <div class="w-full h-[50px] bg-[#38773E] flex justify-between items-center px-10 fixed bottom-0 left-0">
+        <!-- 오운완 아이콘 -->
+        <div class="text-white text-xl font-bold flex items-center space-x-2">
+            <i class="fas fa-dumbbell"></i> <!-- 오운완 아이콘 -->
+            <span>오운완</span>
+        </div>
+
+        <!-- 우측 노션과 깃허브 아이콘 -->
+        <div class="flex items-center space-x-6">
+            <!-- 노션 아이콘 -->
+            <div class="relative">
+                <img src="../../static/images/notion_logo.png" alt="Notion" class="w-8 h-8 cursor-pointer" id="notionIcon">
+                <div id="notionDropdown" class="absolute right-0 hidden bg-white text-black p-2 mt-2 rounded-lg shadow-lg">
+                    <a href="https://www.notion.so" class="block px-4 py-2">Notion</a>
+                </div>
+            </div>
+
+            <!-- 깃허브 아이콘 -->
+            <div class="relative">
+                <i class="fab fa-github text-white text-3xl cursor-pointer" id="githubIcon"></i>
+                <div id="githubDropdown" class="absolute right-0 hidden bg-white text-black p-2 mt-2 rounded-lg shadow-lg">
+                    <a href="https://github.com" class="block px-4 py-2">GitHub</a>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -50,6 +92,32 @@
                 messageElem.textContent = result.error || "서버 오류!";
             }
             messageElem.classList.remove("hidden");
+        });
+
+        // 노션 아이콘 클릭 시 드롭다운 보이기
+        document.getElementById("notionIcon").addEventListener("click", function() {
+            const dropdown = document.getElementById("notionDropdown");
+            dropdown.classList.toggle("hidden");
+        });
+
+        // 깃허브 아이콘 클릭 시 드롭다운 보이기
+        document.getElementById("githubIcon").addEventListener("click", function() {
+            const dropdown = document.getElementById("githubDropdown");
+            dropdown.classList.toggle("hidden");
+        });
+
+        // 로그아웃 버튼 클릭 시 엑세스 토큰 삭제 및 로그인 페이지로 리다이렉트
+        document.getElementById("logoutBtn").addEventListener("click", function(e) {
+            e.preventDefault();
+            
+            // 로컬 스토리지에서 JWT 엑세스 토큰 삭제
+            localStorage.removeItem('access_token');
+            
+            // 쿠키에서 토큰 삭제 (필요시 사용)
+            // document.cookie = 'access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+            
+            // 로그아웃 후 로그인 페이지로 리다이렉트
+            window.location.href = '/login'; // 로그인 페이지로 이동
         });
     </script>
 </body>

@@ -1,11 +1,97 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>메이트 찾기</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    
+<body class="bg-white flex flex-col items-center min-h-screen">
+
+  <!-- 상단 오운완 박스 -->
+  <div class="w-[1017px] h-[94px] bg-white p-4 flex justify-between items-center border-b border-gray-300">
+    <div class="text-3xl font-bold text-gray-800">오운완</div>
+    <div class="flex space-x-6 text-sm text-gray-800">
+      <a href="/mate-search" class="text-gray-800 hover:text-[#38773E] transition duration-300">메이트찾기</a>
+      <a href="/mypage" class="text-gray-800 hover:text-[#38773E] transition duration-300">마이페이지</a>
+      <a href="#" id="logoutBtn" class="text-gray-800 hover:text-[#38773E] transition duration-300">로그아웃</a>
+    </div>
+  </div>
+
+  <!-- 가운데 박스 -->
+  <div class="w-[630px] h-[630px] bg-[#E5E5E5] mt-20 rounded-lg shadow-lg flex flex-col items-center relative">
+    <div id="diaryTitle" class="text-2xl font-semibold text-[#38773E] absolute top-[-50px]">
+      3월 3일 운동일기
+    </div>
+
+    <!-- 추가 버튼 (좌측 상단) -->
+    <button class="absolute top-4 left-4 bg-[#25552A] text-white text-lg px-4 py-2 rounded-md">
+      추가
+    </button>
+
+    <!-- 무게, 횟수, 세트 버튼 (추가 버튼 오른쪽 아래) -->
+    <div class="absolute top-20 right-12 flex space-x-10">
+      <button class="bg-[#25552A] text-white text-lg px-4 py-2 rounded-md">
+        무게
+      </button>
+      <button class="bg-[#25552A] text-white text-lg px-4 py-2 rounded-md">
+        횟수
+      </button>
+      <button class="bg-[#25552A] text-white text-lg px-4 py-2 rounded-md">
+        세트
+      </button>
+    </div>
+
+    <!-- 무게 드롭다운 (5kg 단위로 100kg까지) -->
+    <div class="absolute top-36 right-4 flex flex-col items-start space-y-4">
+      <select class="bg-[#38773E] text-white text-lg px-4 py-2 rounded-md border border-gray-300">
+        <!-- 5kg 단위로 100kg까지 -->
+        <option value="5">5kg</option>
+        <option value="10">10kg</option>
+        <option value="15">15kg</option>
+        <option value="20">20kg</option>
+        <option value="25">25kg</option>
+        <option value="30">30kg</option>
+        <option value="35">35kg</option>
+        <option value="40">40kg</option>
+        <option value="45">45kg</option>
+        <option value="50">50kg</option>
+        <option value="55">55kg</option>
+        <option value="60">60kg</option>
+        <option value="65">65kg</option>
+        <option value="70">70kg</option>
+        <option value="75">75kg</option>
+        <option value="80">80kg</option>
+        <option value="85">85kg</option>
+        <option value="90">90kg</option>
+        <option value="95">95kg</option>
+        <option value="100">100kg</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- 최하단 고정 박스 -->
+  <div class="w-full h-[50px] bg-[#38773E] flex justify-between items-center px-10 fixed bottom-0 left-0">
+    <div class="text-white text-xl font-bold flex items-center space-x-2">
+      <i class="fas fa-dumbbell"></i>
+      <span>오운완</span>
+    </div>
+    <div class="flex items-center space-x-6">
+      <div class="relative">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a1/Notion_logo.svg" alt="Notion" class="w-8 h-8 cursor-pointer" id="notionIcon">
+        <div id="notionDropdown" class="absolute right-0 hidden bg-white text-black p-2 mt-2 rounded-lg shadow-lg">
+          <a href="https://www.notion.so" class="block px-4 py-2">Notion</a>
+        </div>
+      </div>
+      <div class="relative">
+        <i class="fab fa-github text-white text-3xl cursor-pointer" id="githubIcon"></i>
+        <div id="githubDropdown" class="absolute right-0 hidden bg-white text-black p-2 mt-2 rounded-lg shadow-lg">
+          <a href="https://github.com" class="block px-4 py-2">GitHub</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>

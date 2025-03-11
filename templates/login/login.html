@@ -1,3 +1,5 @@
+
+templates\login\login.html
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -67,47 +69,46 @@
 
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script>
-    $(document).ready(function() {
+  $(document).ready(function() {
       $('#loginForm').submit(function(e) {
-        e.preventDefault(); // 폼 제출 막기
+          e.preventDefault(); // 폼 제출 막기
 
-        var username = $('#username').val();
-        var password = $('#password').val();
+          var email = $('#email').val(); // username을 email로 변경
+          var password = $('#password').val();
 
-        // Ajax로 로그인 요청 (백엔드에 실제 요청이 필요하지만 여기서는 생략)
-        $.ajax({
-          url: '/login', // 백엔드 URL에 맞게 수정
-          type: 'POST',
-          contentType: 'application/json',  // Content-Type을 application/json으로 설정
-          data: JSON.stringify({  // 데이터는 JSON 형식으로 변환
-            nickname: nickname,
-            email: email,
-            password: password
-          }),
-          success: function(response) {
-            // 로그인 성공 시 처리
-            if (response.success) {
-              window.location.href = '/dashboard'; // 대시보드로 이동
-            } else {
-              $('#error-message').show(); // 에러 메시지 표시
-            }
-          },
-          error: function() {
-            $('#error-message').show(); // 에러 발생 시 메시지 표시
-          }
-        });
+          // Ajax로 로그인 요청
+          $.ajax({
+              url: '/login', // 백엔드 URL
+              type: 'POST',
+              contentType: 'application/json',  // Content-Type을 application/json으로 설정
+              data: JSON.stringify({  // 데이터는 JSON 형식으로 변환
+                  email: email, // email 변수 사용
+                  password: password
+              }),
+              success: function(response) {
+                  // 로그인 성공 시 처리
+                  if (response.success) {
+                      window.location.href = response.redirect; // mainpage로 이동
+                  } else {
+                      $('#error-message').show(); // 에러 메시지 표시
+                  }
+              },
+              error: function() {
+                  $('#error-message').show(); // 에러 발생 시 메시지 표시
+              }
+          });
       });
 
       // 노션 아이콘 클릭 시 드롭다운 보이기
       $('#notionIcon').click(function() {
-        $('#notionDropdown').toggleClass('hidden');
+          $('#notionDropdown').toggleClass('hidden');
       });
 
       // 깃허브 아이콘 클릭 시 드롭다운 보이기
       $('#githubIcon').click(function() {
-        $('#githubDropdown').toggleClass('hidden');
+          $('#githubDropdown').toggleClass('hidden');
       });
-    });
+  });
   </script>
 </body>
 </html>

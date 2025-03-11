@@ -3,9 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>메이트 찾기</title>
+  <title>운동일기</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome CDN (깃허브 아이콘을 사용하기 위해 추가) -->
+  <script src="https://kit.fontawesome.com/a076d05399.js"></script>
 </head>
 <body class="bg-white flex flex-col items-center min-h-screen">
 
@@ -73,23 +75,22 @@
 
   <!-- 최하단 고정 박스 -->
   <div class="w-full h-[50px] bg-[#38773E] flex justify-between items-center px-10 fixed bottom-0 left-0">
+    <!-- 오운완 아이콘 좌측에 추가 -->
     <div class="text-white text-xl font-bold flex items-center space-x-2">
-      <i class="fas fa-dumbbell"></i>
+      <i class="fas fa-dumbbell"></i> <!-- 오운완 아이콘 추가 -->
       <span>오운완</span>
     </div>
+
     <div class="flex items-center space-x-6">
-      <div class="relative">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a1/Notion_logo.svg" alt="Notion" class="w-8 h-8 cursor-pointer" id="notionIcon">
-        <div id="notionDropdown" class="absolute right-0 hidden bg-white text-black p-2 mt-2 rounded-lg shadow-lg">
-          <a href="https://www.notion.so" class="block px-4 py-2">Notion</a>
-        </div>
-      </div>
-      <div class="relative">
-        <i class="fab fa-github text-white text-3xl cursor-pointer" id="githubIcon"></i>
-        <div id="githubDropdown" class="absolute right-0 hidden bg-white text-black p-2 mt-2 rounded-lg shadow-lg">
-          <a href="https://github.com" class="block px-4 py-2">GitHub</a>
-        </div>
-      </div>
+      <!-- 노션 아이콘 클릭 시 설정된 URL로 이동 -->
+      <a href="https://www.notion.so/1b2d5b3e6ec58080ae3bcc88009abb41?pvs=4" target="_blank">
+        <img src="../../static/images/notion_logo.png" alt="Notion" class="w-8 h-8 cursor-pointer">
+      </a>
+
+      <!-- 깃허브 아이콘 클릭 시 설정된 URL로 이동 -->
+      <a href="https://github.com/craftonjungle8" target="_blank">
+        <img src="../../static/images/github_logo.png" alt="GitHub" class="w-8 h-8 cursor-pointer">
+      </a>
     </div>
   </div>
 

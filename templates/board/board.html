@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>메이트 찾기</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>게시글 리스트</title>
+    <!-- Tailwind / FontAwesome -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
@@ -15,7 +16,7 @@
         <div class="text-3xl font-bold text-gray-800 flex items-center space-x-2">
             <span>오운완</span>
         </div>
-        <div class="flex space-x-6 text-sm text-gray-800"> 
+        <div class="flex space-x-6 text-sm text-gray-800">
             <a href="/mate-search" class="text-gray-800 hover:text-[#38773E] transition duration-300">메이트찾기</a>
             <a href="/mypage" class="text-gray-800 hover:text-[#38773E] transition duration-300">마이페이지</a>
             <a href="#" id="logoutBtn" class="text-gray-800 hover:text-[#38773E] transition duration-300">로그아웃</a>
@@ -25,7 +26,7 @@
     <!-- 게시글 목록 -->
     <div class="flex flex-col items-center w-full mt-8">
         <div class="grid grid-cols-3 gap-4 w-[1017px]" id="postGrid">
-            <!-- 게시글 카드들이 여기에 추가됩니다 -->
+            <!-- 게시글 카드들이 동적으로 추가됨 -->
         </div>
 
         <!-- 페이지네이션 -->
@@ -44,11 +45,12 @@
             <p id="modalDate" class="text-sm text-gray-500"></p>
             <p id="modalContent" class="h-[220px] mt-4"></p>
 
-            <!-- 댓글 섹션 -->
-            <div class="mt-6 bg-#38773e">
+            <!-- 댓글 섹션 (예시) -->
+            <div class="mt-6">
                 <h3 class="text-lg font-semibold">댓글</h3>
+                <!-- 실제 댓글 기능을 구현하려면 별도 API 필요 -->
                 <div id="commentList" class="mt-2 space-y-2">
-                    <!-- 예시 댓글 -->
+                    <!-- 예시 댓글 (정적) -->
                     <div class="p-2 border-b border-gray-300">
                         <p class="text-sm font-semibold">운동왕 <span class="text-gray-500 text-xs">(2025-03-10 14:30)</span></p>
                         <p class="text-gray-800">오늘 운동 끝냈어요!🔥</p>
@@ -57,26 +59,31 @@
 
                 <!-- 댓글 입력 -->
                 <div class="flex mt-4 space-x-2">
-                    <input id="commentInput" type="text" placeholder="댓글을 입력하세요" class="flex-grow p-2 border rounded-md">
+                    <!-- 사용자 닉네임은 숨겨진 input으로 받을 수도 있음 -->
+                    <input
+                        id="commentInput"
+                        type="text"
+                        placeholder="댓글을 입력하세요"
+                        class="flex-grow p-2 border rounded-md"
+                    />
                     <button id="addComment" class="bg-green-700 text-white px-4 py-2 rounded-md">작성</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 최하단 고정 박스 -->
+    <!-- 하단 고정 박스 -->
     <div class="w-full h-[50px] bg-[#38773E] flex justify-between items-center px-10 fixed bottom-0 left-0">
-        <!-- 오운완 아이콘 -->
         <div class="text-white text-xl font-bold flex items-center space-x-2">
-            <i class="fas fa-dumbbell"></i> <!-- 오운완 아이콘 -->
+            <i class="fas fa-dumbbell"></i>
             <span>오운완</span>
         </div>
         <div class="flex items-center space-x-6">
-            <!-- 노션 아이콘 클릭 시 설정된 URL로 이동 -->
+            <!-- 노션 링크 -->
             <a href="https://www.notion.so/1b2d5b3e6ec58080ae3bcc88009abb41?pvs=4" target="_blank">
                 <img src="../../static/images/notion_logo.png" alt="Notion" class="w-8 h-8 cursor-pointer">
             </a>
-            <!-- 깃허브 아이콘 클릭 시 설정된 URL로 이동 -->
+            <!-- 깃허브 링크 -->
             <a href="https://github.com/craftonjungle8" target="_blank">
                 <img src="../../static/images/github_logo.png" alt="GitHub" class="w-8 h-8 cursor-pointer">
             </a>
@@ -84,17 +91,66 @@
     </div>
 
     <script>
-        const posts = Array.from({ length: 20 }, (_, i) => ({
-            title: `게시글 제목 ${i + 1}`,
-            date: `2025-03-${String(i % 28 + 1).padStart(2, '0')}`,
-            content: `이것은 게시글 ${i + 1}의 상세 내용입니다.`,
-        }));
-        const postsPerPage = 9;
-        let currentPage = 1;
+        // -------------------------
+        // 글로벌 변수 & 초기 설정
+        // -------------------------
+        let posts = [];               // 서버에서 가져온 게시글 배열
+        const postsPerPage = 9;       // 페이지 당 표시할 게시글 수
+        let currentPage = 1;          // 현재 페이지
+        let nickname = "";            // 로그인된 사용자 닉네임
 
+        // -------------------------
+        // (A) 닉네임 불러오기
+        // -------------------------
+        async function fetchNickname() {
+            const token = localStorage.getItem("token");
+            if (!token) return;  // 토큰 없으면 아무것도 안 함
+
+            try {
+                const response = await fetch("/user-info", {
+                    headers: { "x-access-token": token },
+                });
+                const data = await response.json();
+                if (data.nickname) {
+                    nickname = data.nickname;
+                    console.log("닉네임:", nickname);
+                }
+            } catch (error) {
+                console.error("닉네임 불러오기 실패:", error);
+            }
+        }
+
+        // -------------------------
+        // (B) 게시글 목록 불러오기
+        // -------------------------
+        async function fetchBoards() {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                alert("로그인 토큰이 없습니다. 로그인 후 이용해주세요.");
+                return;
+            }
+            try {
+                const response = await fetch("/board", {
+                    headers: { "x-access-token": token },
+                });
+                if (!response.ok) {
+                    throw new Error("게시글 불러오기에 실패했습니다.");
+                }
+                posts = await response.json();
+                renderPosts();
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        // -------------------------
+        // (C) 게시글 목록 렌더링
+        // -------------------------
         function renderPosts() {
             const grid = document.getElementById("postGrid");
             grid.innerHTML = "";
+
+            // 현재 페이지에 맞는 게시글 slice
             const start = (currentPage - 1) * postsPerPage;
             const end = start + postsPerPage;
             const visiblePosts = posts.slice(start, end);
@@ -102,19 +158,28 @@
             visiblePosts.forEach(post => {
                 const card = document.createElement("div");
                 card.className = "w-[320px] h-[180px] bg-white p-4 shadow-md rounded-lg flex flex-col justify-between cursor-pointer";
+
+                // 카드 내용
                 card.innerHTML = `
                     <h3 class="text-lg font-bold">${post.title}</h3>
-                    <p class="text-sm text-gray-500 text-right">${post.date}</p>
+                    <p class="text-sm text-gray-500 text-right">${post.created_at}</p>
                 `;
-                card.addEventListener("click", () => openModal(post));
+
+                // 카드 클릭 시 -> 게시글 상세 모달
+                card.addEventListener("click", () => openModal(post.id));
+
                 grid.appendChild(card);
             });
 
+            // 페이지 인디케이터 / 버튼
             document.getElementById("pageIndicator").textContent = currentPage;
             document.getElementById("prevPage").disabled = currentPage === 1;
             document.getElementById("nextPage").disabled = end >= posts.length;
         }
 
+        // -------------------------
+        // (D) 페이지네이션 버튼
+        // -------------------------
         document.getElementById("prevPage").addEventListener("click", () => {
             if (currentPage > 1) {
                 currentPage--;
@@ -129,35 +194,55 @@
             }
         });
 
-        function openModal(post) {
-            document.getElementById("modalTitle").textContent = post.title;
-            document.getElementById("modalDate").textContent = post.date;
-            document.getElementById("modalContent").textContent = post.content;
-            document.getElementById("postModal").classList.remove("hidden");
+        // -------------------------
+        // (E) 게시글 상세 보기
+        // -------------------------
+        async function openModal(boardId) {
+            const token = localStorage.getItem("token");
+            if (!token) return;
+
+            try {
+                // 상세 API 호출
+                const response = await fetch(`/board/${boardId}`, {
+                    headers: { "x-access-token": token },
+                });
+                if (!response.ok) {
+                    alert("게시글 상세 조회 실패");
+                    return;
+                }
+                const data = await response.json();
+
+                // 모달 데이터 주입
+                document.getElementById("modalTitle").textContent = data.title;
+                document.getElementById("modalDate").textContent = data.created_at;
+                document.getElementById("modalContent").textContent = data.content;
+
+                // 모달 열기
+                document.getElementById("postModal").classList.remove("hidden");
+            } catch (error) {
+                console.error("게시글 상세 조회 중 오류:", error);
+            }
         }
 
+        // 모달 닫기
         document.getElementById("closeModal").addEventListener("click", () => {
             document.getElementById("postModal").classList.add("hidden");
         });
 
-        async function fetchNickname() {
-            try {
-                const response = await fetch("/user-info");
-                const data = await response.json();
-                if (data.nickname) {
-                    document.getElementById("nickname").value = data.nickname;
-                }
-            } catch (error) {
-                console.error("닉네임 불러오기 실패:", error);
-            }
-        }
-
+        // -------------------------
+        // (F) 댓글 작성 (프론트 예시)
+        // -------------------------
         document.getElementById("addComment").addEventListener("click", function () {
-            const nickname = document.getElementById("nickname").value;
             const commentText = document.getElementById("commentInput").value.trim();
             if (!nickname || !commentText) return;
 
-            const now = new Date().toLocaleString("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+            const now = new Date().toLocaleString("ko-KR", {
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit"
+            });
 
             document.getElementById("commentList").innerHTML += `
                 <div class="p-2 border-b border-gray-300">
@@ -165,12 +250,26 @@
                     <p class="text-gray-800">${commentText}</p>
                 </div>
             `;
-
             document.getElementById("commentInput").value = "";
         });
 
-        window.onload = fetchNickname;
-        renderPosts();
+        // -------------------------
+        // (G) 로그아웃
+        // -------------------------
+        document.getElementById("logoutBtn").addEventListener("click", () => {
+            localStorage.removeItem("token");
+            alert("로그아웃 되었습니다.");
+            // 예: 로그인 페이지로 이동
+            window.location.href = "/";
+        });
+
+        // -------------------------
+        // (H) 페이지 로드 시 실행
+        // -------------------------
+        window.onload = async () => {
+            await fetchNickname(); // 사용자 닉네임 불러오기
+            await fetchBoards();   // 게시글 목록 불러오기
+        };
     </script>
 </body>
 </html>

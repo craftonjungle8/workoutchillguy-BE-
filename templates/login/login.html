@@ -37,6 +37,34 @@
     </p>
   </div>
 
+  <!-- 최하단 고정 바 (수정된 부분) -->
+  <div class="w-full h-[50px] bg-[#38773E] flex justify-between items-center px-10 fixed bottom-0 left-0">
+    <!-- 오운완 아이콘 -->
+    <div class="text-white text-xl font-bold flex items-center space-x-2">
+      <i class="fas fa-dumbbell"></i> <!-- 오운완 아이콘 -->
+      <span>오운완</span>
+    </div>
+
+    <!-- 우측 노션과 깃허브 아이콘 -->
+    <div class="flex items-center space-x-6">
+      <!-- 노션 아이콘 -->
+      <div class="relative">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a1/Notion_logo.svg" alt="Notion" class="w-8 h-8 cursor-pointer" id="notionIcon">
+        <div id="notionDropdown" class="absolute right-0 hidden bg-white text-black p-2 mt-2 rounded-lg shadow-lg">
+          <a href="https://www.notion.so" class="block px-4 py-2">Notion</a>
+        </div>
+      </div>
+
+      <!-- 깃허브 아이콘 -->
+      <div class="relative">
+        <i class="fab fa-github text-white text-3xl cursor-pointer" id="githubIcon"></i>
+        <div id="githubDropdown" class="absolute right-0 hidden bg-white text-black p-2 mt-2 rounded-lg shadow-lg">
+          <a href="https://github.com" class="block px-4 py-2">GitHub</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script>
     $(document).ready(function() {
@@ -66,6 +94,16 @@
             $('#error-message').show(); // 에러 발생 시 메시지 표시
           }
         });
+      });
+
+      // 노션 아이콘 클릭 시 드롭다운 보이기
+      $('#notionIcon').click(function() {
+        $('#notionDropdown').toggleClass('hidden');
+      });
+
+      // 깃허브 아이콘 클릭 시 드롭다운 보이기
+      $('#githubIcon').click(function() {
+        $('#githubDropdown').toggleClass('hidden');
       });
     });
   </script>

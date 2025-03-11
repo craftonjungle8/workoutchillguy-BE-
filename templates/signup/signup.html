@@ -6,6 +6,7 @@
   <title>회원가입 페이지</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script> <!-- FontAwesome 아이콘 -->
 </head>
 <body class="bg-white flex justify-center items-center min-h-screen">
   <!-- 상단 오운완 텍스트 -->
@@ -14,23 +15,23 @@
   </div>
 
   <!-- 회원가입 박스 -->
-  <div class="bg-white p-8 rounded-lg shadow-lg w-[673px] h-[734px] mt-10 flex flex-col items-center justify-center">
+  <div class="bg-white p-8 rounded-lg shadow-lg w-[673px] h-[700px] mt-10 flex flex-col items-center justify-center">
     <h2 class="text-2xl font-bold text-center mb-4 text-[#38773E]">Sign Up</h2>
     <form id="signupForm" class="w-full flex flex-col items-center">
       <!-- 닉네임 입력란 -->
       <div class="mb-4">
-        <input type="text" id="nickname" name="nickname" class="w-[363.34px] h-[59.31px] p-2 border border-gray-300 bg-gray-200 rounded-lg mt-1 text-left" placeholder="Nickname" required>
+        <input type="text" id="nickname" name="nickname" class="w-[360px] h-[55px] p-2 border border-gray-300 bg-gray-200 rounded-lg mt-1" placeholder="Nickname" required>
       </div>
       <!-- 이메일 입력란 -->
       <div class="mb-4">
-        <input type="email" id="email" name="email" class="w-[363.34px] h-[59.31px] p-2 border border-gray-300 bg-gray-200 rounded-lg mt-1 text-left" placeholder="Email" required>
+        <input type="email" id="email" name="email" class="w-[360px] h-[55px] p-2 border border-gray-300 bg-gray-200 rounded-lg mt-1" placeholder="Email" required>
       </div>
       <!-- 비밀번호 입력란 -->
       <div class="mb-4">
-        <input type="password" id="password" name="password" class="w-[363.34px] h-[59.31px] p-2 border border-gray-300 bg-gray-200 rounded-lg mt-1 text-left" placeholder="Password" required>
+        <input type="password" id="password" name="password" class="w-[360px] h-[55px] p-2 border border-gray-300 bg-gray-200 rounded-lg mt-1" placeholder="Password" required>
       </div>
       <!-- 회원가입 버튼 -->
-      <button type="submit" class="w-[363.34px] h-[59.31px] py-2 text-white font-semibold rounded-lg hover:bg-opacity-80 transition duration-200 text-center" style="background-color: #38773E;">회원가입</button>
+      <button type="submit" class="w-[360px] h-[55px] py-2 text-white font-semibold rounded-lg hover:bg-opacity-80 transition duration-200" style="background-color: #38773E;">회원가입</button>
       <p id="error-message" class="text-red-500 mt-4 text-center hidden">회원가입 중 오류가 발생했습니다.</p>
     </form>
     
@@ -39,6 +40,23 @@
       이미 회원이신가요? 
       <a href="/login" class="text-blue-500 hover:underline">로그인하기</a>
     </p>
+  </div>
+
+  <!-- 하단 바 -->
+  <div class="w-full h-[50px] bg-[#38773E] flex justify-between items-center px-10 fixed bottom-0">
+    <!-- 왼쪽: 오운완 텍스트 -->
+    <div class="text-white text-lg font-bold flex items-center space-x-2">
+      <i class="fas fa-dumbbell"></i>
+      <span>오운완</span>
+    </div>
+
+    <!-- 오른쪽: 노션, 깃허브 아이콘 -->
+    <div class="flex items-center space-x-4">
+      <!-- 노션 아이콘 -->
+      <img src="assets/notion-icon.png" alt="Notion" class="w-6 h-6 cursor-pointer" id="notionIcon">
+      <!-- 깃허브 아이콘 -->
+      <i class="fab fa-github text-white text-2xl cursor-pointer" id="githubIcon"></i>
+    </div>
   </div>
 
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -51,9 +69,9 @@
         var email = $('#email').val();
         var password = $('#password').val();
 
-        // Ajax로 회원가입 요청 (백엔드에 실제 요청이 필요하지만 여기서는 생략)
+        // Ajax로 회원가입 요청
         $.ajax({
-          url: '/signup', // 백엔드 URL에 맞게 수정
+          url: '/signup',
           type: 'POST',
           data: {
             nickname: nickname,
@@ -61,15 +79,14 @@
             password: password
           },
           success: function(response) {
-            // 회원가입 성공 시 처리
             if (response.success) {
-              window.location.href = '/login'; // 로그인 페이지로 이동
+              window.location.href = '/login';
             } else {
-              $('#error-message').show(); // 에러 메시지 표시
+              $('#error-message').show();
             }
           },
           error: function() {
-            $('#error-message').show(); // 에러 발생 시 메시지 표시
+            $('#error-message').show();
           }
         });
       });

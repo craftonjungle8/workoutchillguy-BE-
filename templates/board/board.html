@@ -5,15 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>메이트 찾기</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
 
 <body class="flex flex-col items-center min-h-screen">
 
     <!-- 상단 헤더 -->
     <div class="w-[1017px] h-[94px] bg-white p-4 flex justify-between items-center border-b border-gray-300">
-        <div class="text-3xl font-bold text-gray-800">오운완</div>
+        <div class="text-3xl font-bold text-gray-800 flex items-center space-x-2">
+            <span>오운완</span>
+        </div>
         <div class="flex space-x-6 text-sm text-gray-800"> 
-            <a href="/mate-search" class="text-[#38773E] hover:text-[#2E5F31] font-semibold transition duration-300">메이트찾기</a>
+            <a href="/mate-search" class="text-gray-800 hover:text-[#38773E] transition duration-300">메이트찾기</a>
             <a href="/mypage" class="text-gray-800 hover:text-[#38773E] transition duration-300">마이페이지</a>
             <a href="#" id="logoutBtn" class="text-gray-800 hover:text-[#38773E] transition duration-300">로그아웃</a>
         </div>
@@ -61,15 +64,22 @@
         </div>
     </div>
 
-    <!-- 하단 푸터 -->
+    <!-- 최하단 고정 박스 -->
     <div class="w-full h-[50px] bg-[#38773E] flex justify-between items-center px-10 fixed bottom-0 left-0">
+        <!-- 오운완 아이콘 -->
         <div class="text-white text-xl font-bold flex items-center space-x-2">
-            <i class="fas fa-dumbbell"></i>
+            <i class="fas fa-dumbbell"></i> <!-- 오운완 아이콘 -->
             <span>오운완</span>
         </div>
         <div class="flex items-center space-x-6">
-            <a href="https://www.notion.so"><img src="../../static/images/notion_logo.png" alt="Notion" class="w-8 h-8 cursor-pointer"></a>
-            <a href="https://github.com"><i class="fab fa-github text-white text-3xl cursor-pointer"></i></a>
+            <!-- 노션 아이콘 클릭 시 설정된 URL로 이동 -->
+            <a href="https://www.notion.so/1b2d5b3e6ec58080ae3bcc88009abb41?pvs=4" target="_blank">
+                <img src="../../static/images/notion_logo.png" alt="Notion" class="w-8 h-8 cursor-pointer">
+            </a>
+            <!-- 깃허브 아이콘 클릭 시 설정된 URL로 이동 -->
+            <a href="https://github.com/craftonjungle8" target="_blank">
+                <img src="../../static/images/github_logo.png" alt="GitHub" class="w-8 h-8 cursor-pointer">
+            </a>
         </div>
     </div>
 
@@ -94,7 +104,7 @@
                 card.className = "w-[320px] h-[180px] bg-white p-4 shadow-md rounded-lg flex flex-col justify-between cursor-pointer";
                 card.innerHTML = `
                     <h3 class="text-lg font-bold">${post.title}</h3>
-                    <p class="text-sm text-gray-500">${post.date}</p>
+                    <p class="text-sm text-gray-500 text-right">${post.date}</p>
                 `;
                 card.addEventListener("click", () => openModal(post));
                 grid.appendChild(card);

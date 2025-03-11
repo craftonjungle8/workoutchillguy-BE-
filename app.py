@@ -1,158 +1,133 @@
-from flask import Flask, request, jsonify, send_from_directory
-from pymongo import MongoClient
+from flask import Flask, request, jsonify, render_template
+from flask_pymongo import PyMongo
+import jwt
+import datetime
+import bcrypt
+from functools import wraps
 from bson import ObjectId
-from datetime import datetime
-import os
 
 app = Flask(__name__)
 
-# MongoDB 연결
-client = MongoClient("mongodb://localhost:27017/")
-db = client["mydatabase"]
-collection = db["articles"]
+# 🔹 환경 변수 설정 (SECRET_KEY 및 MongoDB 연결)
+app.config["SECRET_KEY"] = "your_secret_key"
+app.config["MONGO_URI"] = "mongodb://localhost:27017/1weekmini"
 
-# ObjectId를 문자열로 변환하는 함수
-def serialize_document(doc):
-    doc["_id"] = str(doc["_id"])
-    if "created_at" in doc and isinstance(doc["created_at"], datetime):
-        doc["created_at"] = doc["created_at"].strftime("%Y-%m-%d %H:%M:%S")
+mongo = PyMongo(app)
+users_collection = mongo.db.users
+boards_collection = mongo.db.boards
 
-    if "comments" in doc:
-        for comment in doc["comments"]:
-            comment["_id"] = str(comment["_id"])
-            if "created_at" in comment and isinstance(comment["created_at"], datetime):
-                comment["created_at"] = comment["created_at"].strftime("%Y-%m-%d %H:%M:%S")
-    return doc
-
-# (1) 게시글 생성 (Create)
-@app.route("/api/articles", methods=["POST"])
-def create_article():
-    data = request.json
-    if "title" not in data or "content" not in data:
-        return jsonify({"error": "제목과 내용을 입력하세요"}), 400
-
-    new_article = {
-        "title": data["title"],
-        "content": data["content"],
-        "comments": [],
-        "created_at": datetime.now()  # 생성 시간 기록
-    }
-    result = collection.insert_one(new_article)
-    return jsonify({"message": "게시글이 작성되었습니다", "id": str(result.inserted_id)}), 201
-
-# (2) 게시글 목록 조회 (Read - 다건)
-@app.route("/api/articles", methods=["GET"])
-def get_articles():
-    articles = list(collection.find().sort("created_at", -1))  # 최신순 정렬 예시
-    return jsonify([serialize_document(article) for article in articles])
-
-# (3) 게시글 상세 조회 (Read - 단건)
-@app.route("/api/articles/<id>", methods=["GET"])
-def get_article(id):
-    article = collection.find_one({"_id": ObjectId(id)})
-    if article:
-        return jsonify(serialize_document(article))
-    return jsonify({"error": "게시글을 찾을 수 없습니다"}), 404
-
-# (4) 게시글 수정 (Update)
-@app.route("/api/articles/<id>", methods=["PUT"])
-def update_article(id):
-    data = request.json
-    update_data = {}
-
-    if "title" in data:
-        update_data["title"] = data["title"]
-    if "content" in data:
-        update_data["content"] = data["content"]
-
-    result = collection.update_one({"_id": ObjectId(id)}, {"$set": update_data})
-
-    if result.matched_count:
-        return jsonify({"message": "게시글이 수정되었습니다"})
-    return jsonify({"error": "게시글을 찾을 수 없습니다"}), 404
-
-# (5) 게시글 삭제 (Delete)
-@app.route("/api/articles/<id>", methods=["DELETE"])
-def delete_article(id):
-    result = collection.delete_one({"_id": ObjectId(id)})
-    if result.deleted_count:
-        return jsonify({"message": "게시글이 삭제되었습니다"})
-    return jsonify({"error": "게시글을 찾을 수 없습니다"}), 404
-
-# (6) 댓글 추가 (Create)
-@app.route("/api/articles/<id>/comments", methods=["POST"])
-def add_comment(id):
-    data = request.json
-    if "nickname" not in data or "content" not in data:
-        return jsonify({"error": "닉네임과 댓글 내용을 입력하세요"}), 400
-
-    comment = {
-        "_id": ObjectId(),   # 각 댓글에 대한 고유 ID
-        "nickname": data["nickname"],
-        "content": data["content"],
-        "created_at": datetime.now()
-    }
-    result = collection.update_one({"_id": ObjectId(id)}, {"$push": {"comments": comment}})
-    
-    if result.matched_count:
-        return jsonify({"message": "댓글이 추가되었습니다", "comment_id": str(comment["_id"])})
-    return jsonify({"error": "게시글을 찾을 수 없습니다"}), 404
-
-# (7) 댓글 조회 (Read)
-@app.route("/api/articles/<id>/comments", methods=["GET"])
-def get_comments(id):
-    article = collection.find_one({"_id": ObjectId(id)})
-    if article:
-        # article["comments"]가 없을 경우 빈 리스트
-        comments = article.get("comments", [])
-        # 날짜 문자열 변환
-        for c in comments:
-            c["_id"] = str(c["_id"])
-            if "created_at" in c and isinstance(c["created_at"], datetime):
-                c["created_at"] = c["created_at"].strftime("%Y-%m-%d %H:%M:%S")
-        return jsonify(comments)
-    return jsonify({"error": "게시글을 찾을 수 없습니다"}), 404
-
-# (8) 댓글 수정 (Update)
-@app.route("/api/articles/<article_id>/comments/<comment_id>", methods=["PUT"])
-def update_comment(article_id, comment_id):
-    data = request.json
-    update_data = {}
-
-    if "content" in data:
-        update_data["comments.$.content"] = data["content"]
-    
-    result = collection.update_one(
-        {"_id": ObjectId(article_id), "comments._id": ObjectId(comment_id)},
-        {"$set": update_data}
-    )
-
-    if result.matched_count:
-        return jsonify({"message": "댓글이 수정되었습니다"})
-    return jsonify({"error": "댓글을 찾을 수 없습니다"}), 404
-
-# (9) 댓글 삭제 (Delete)
-@app.route("/api/articles/<article_id>/comments/<comment_id>", methods=["DELETE"])
-def delete_comment(article_id, comment_id):
-    result = collection.update_one(
-        {"_id": ObjectId(article_id)},
-        {"$pull": {"comments": {"_id": ObjectId(comment_id)}}}
-    )
-    
-    if result.modified_count:
-        return jsonify({"message": "댓글이 삭제되었습니다"})
-    return jsonify({"error": "댓글을 찾을 수 없습니다"}), 404
-
-# ------ 정적 파일 & 메인 페이지 라우팅 (예시) ------
+# 루트 경로(첫 화면)
 @app.route("/")
-def serve_root():
-    # Flask가 index.html(아래 작성할 HTML)을 서빙하도록 구성
-    return send_from_directory(os.path.join(app.root_path, "static"), "index.html")
+def home():
+   return render_template("login/login.html")  # 로그인 페이지로 연결
 
-# 만약 /mate-search 경로로 접속했을 때 동일 파일을 서빙하고 싶다면:
-@app.route("/mate-search")
-def serve_mate_search():
-    return send_from_directory(os.path.join(app.root_path, "static"), "index.html")
+# ✅ JWT 토큰 검증 데코레이터
+def token_required(f):
+   @wraps(f)
+   def decorated(*args, **kwargs):
+      token = request.headers.get("x-access-token")
+      if not token:
+         print("No token provided", flush=True)
+         return jsonify({"message": "토큰이 없습니다!"}), 401
+      try:
+         data = jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])
+         print(f"Token success: {data['user_id']}", flush=True)
+         current_user = users_collection.find_one({"_id": ObjectId(data["user_id"])})
+         if not current_user:
+            print(f"User not found for token: {data['user_id']}", flush=True)
+            return jsonify({"message": "유효하지 않은 사용자입니다!"}), 401
+      except jwt.ExpiredSignatureError:
+         print("Token has expired", flush=True)
+         return jsonify({"message": "토큰이 만료되었습니다!"}), 401
+      except jwt.InvalidTokenError:
+         print("Invalid token", flush=True)
+         return jsonify({"message": "유효하지 않은 토큰입니다!"}), 401
+      return f(current_user, *args, **kwargs)
+   return decorated
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+# 회원 가입 페이지(GET)
+@app.route("/signup", methods=["GET"])
+def signup_page():
+   return render_template("signup/signup.html")  # 회원가입 페이지로 연결
+
+# ✅ 회원가입 API
+@app.route("/signup", methods=["POST"])
+def signup():
+   data = request.json
+   nickname = data.get("nickname")
+   email = data.get("email")
+   password = data.get("password")
+
+   if users_collection.find_one({"email": email}):
+      return jsonify({"success": False, "message": "이미 가입된 이메일입니다."}), 400
+
+   hashed_pw = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
+
+   user_id = users_collection.insert_one({
+      "nickname": nickname,
+      "email": email,
+      "password": hashed_pw,
+   }).inserted_id
+
+   return jsonify({"success": True, "message": "회원가입 성공!", "user_id": str(user_id)}), 201
+
+# ✅ 로그인 API (JWT 발급)
+@app.route("/login", methods=["POST"])
+def login():
+   data = request.json
+   email = data.get("email")
+   password = data.get("password")
+
+   log_messages = []  # 🔹 로그 메시지를 저장할 리스트
+   log_messages.append(f"로그인 시도: {email}")
+
+   user = users_collection.find_one({"email": email})
+
+   if not user:
+      log_messages.append(f"사용자를 찾을 수 없음: {email}")
+      return jsonify({"success": False, "message": "이메일 또는 비밀번호가 잘못되었습니다.", "logs": log_messages}), 401
+
+   if not bcrypt.checkpw(password.encode("utf-8"), user["password"]):
+      log_messages.append(f"비밀번호 불일치: {email}")
+      return jsonify({"success": False, "message": "이메일 또는 비밀번호가 잘못되었습니다.", "logs": log_messages}), 401
+
+   token = jwt.encode(
+      {"user_id": str(user["_id"]), "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1)},
+      app.config["SECRET_KEY"],
+      algorithm="HS256"
+   )
+
+   log_messages.append("로그인 성공!")
+   return jsonify({"success": True, "token": token, "logs": log_messages})
+
+# ✅ 게시글 작성 API (JWT 인증 필요)
+@app.route("/board", methods=["POST"])
+@token_required
+def create_board(current_user):
+   data = request.json
+   board_id = boards_collection.insert_one({
+      "title": data["title"],
+      "content": data["content"],
+      "user_id": current_user["_id"],
+      "created_at": datetime.datetime.utcnow()
+   }).inserted_id
+
+   return jsonify({"message": "게시글 등록 완료", "board_id": str(board_id)})
+
+# ✅ 사용자의 게시글 조회 API (JWT 인증 필요)
+@app.route("/board", methods=["GET"])
+@token_required
+def get_boards(current_user):
+   user_boards = boards_collection.find({"user_id": current_user["_id"]})
+   result = [{"title": board["title"], "content": board["content"]} for board in user_boards]
+
+   return jsonify(result)
+
+# ✅ 대시보드 (로그인한 유저만 접근 가능)
+@app.route("/dashboard", methods=["GET"])
+@token_required
+def dashboard(current_user):
+   return jsonify({"message": f"환영합니다, {current_user['email']}님!"})
+
+if __name__ == '__main__':
+   app.run('0.0.0.0', port=5001, debug=True)

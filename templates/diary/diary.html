@@ -1,133 +1,235 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>운동일기</title>
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Font Awesome CDN (깃허브 아이콘을 사용하기 위해 추가) -->
-  <script src="https://kit.fontawesome.com/a076d05399.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>운동일기</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+        integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://kit.fontawesome.com/a076d05399.js"></script>
+    <style>
+        /* 삭제 아이콘 스타일 */
+        .delete-icon {
+            cursor: pointer;
+            color: red;
+            margin-left: 10px;
+            /* 삭제 아이콘 간격 */
+        }
+
+        /* 공통 드롭다운 스타일 */
+        .dropdown {
+            background-color: #38773E;
+            color: white;
+            font-size: 0.875rem;
+            /* 14px */
+            line-height: 1.25rem;
+            /* 20px */
+            padding-left: 1rem;
+            /* 16px */
+            padding-right: 1rem;
+            /* 16px */
+            padding-top: 0.5rem;
+            /* 8px */
+            padding-bottom: 0.5rem;
+            /* 8px */
+            border-radius: 0.375rem;
+            /* 6px */
+            border: 1px solid #9CA3AF;
+            width: 110px;
+            text-align: center;
+        }
+
+        /* 공통 버튼 스타일 */
+        .button {
+            background-color: #38773E;
+            color: white;
+            font-size: 0.875rem;
+            /* 14px */
+            line-height: 1.25rem;
+            /* 20px */
+            padding-left: 1rem;
+            /* 16px */
+            padding-right: 1rem;
+            /* 16px */
+            padding-top: 0.5rem;
+            /* 8px */
+            padding-bottom: 0.5rem;
+            /* 8px */
+            border-radius: 0.375rem;
+            /* 6px */
+            border: 1px solid #9CA3AF;
+            width: 110px;
+            text-align: center;
+        }
+    </style>
 </head>
+
 <body class="bg-white flex flex-col items-center min-h-screen">
 
-  <!-- 상단 오운완 박스 -->
-  <div class="w-[1017px] h-[94px] bg-white p-4 flex justify-between items-center border-b border-gray-300">
-    <div class="text-3xl font-bold text-gray-800">오운완</div>
-    <div class="flex space-x-6 text-sm text-gray-800">
-      <a href="/mate-search" class="text-gray-800 hover:text-[#38773E] transition duration-300">메이트찾기</a>
-      <a href="/mypage" class="text-gray-800 hover:text-[#38773E] transition duration-300">마이페이지</a>
-      <a href="#" id="logoutBtn" class="text-gray-800 hover:text-[#38773E] transition duration-300">로그아웃</a>
-    </div>
-  </div>
-
-  <!-- 가운데 박스 -->
-  <div class="w-[630px] h-[630px] bg-[#E5E5E5] mt-20 rounded-lg shadow-lg flex flex-col items-center relative">
-    <div id="diaryTitle" class="text-2xl font-semibold text-[#38773E] absolute top-[-50px]">
-      3월 3일 운동일기
+    <!-- 상단 오운완 박스 -->
+    <div class="w-[1017px] h-[94px] bg-white p-4 flex justify-between items-center border-b border-gray-300">
+        <div class="text-3xl font-bold text-gray-800">오운완</div>
+        <div class="flex space-x-6 text-sm text-gray-800">
+            <a href="/mate-search"
+                class="text-gray-800 hover:text-[#38773E] transition duration-300">메이트찾기</a>
+            <a href="/mypage" class="text-gray-800 hover:text-[#38773E] transition duration-300">마이페이지</a>
+            <a href="#" id="logoutBtn" class="text-gray-800 hover:text-[#38773E] transition duration-300">로그아웃</a>
+        </div>
     </div>
 
-    <!-- 추가 버튼 (좌측 상단) -->
-    <button class="absolute top-4 left-4 bg-[#25552A] text-white text-lg px-4 py-2 rounded-md">
-      추가
-    </button>
+    <!-- 가운데 박스 -->
+    <div class="w-[630px] bg-[#E5E5E5] mt-20 rounded-lg shadow-lg flex flex-col items-center relative">
+        <div id="diaryTitle" class="text-2xl font-semibold text-[#38773E] absolute top-[-50px]">
+            3월 3일 운동일기
+        </div>
 
-    <!-- 운동 종류 선택 (원 형태의 체크박스) -->
-    <div class="absolute top-12 left-4 flex flex-col space-y-4">
-      <div class="flex items-center space-x-2">
-        <input type="checkbox" id="exercise1" class="w-4 h-4 rounded-full">
-        <label for="exercise1" class="text-gray-800">운동1</label>
-      </div>
-      <div class="flex items-center space-x-2">
-        <input type="checkbox" id="exercise2" class="w-4 h-4 rounded-full">
-        <label for="exercise2" class="text-gray-800">운동2</label>
-      </div>
-      <div class="flex items-center space-x-2">
-        <input type="checkbox" id="exercise3" class="w-4 h-4 rounded-full">
-        <label for="exercise3" class="text-gray-800">운동3</label>
-      </div>
+        <!-- 추가 버튼 (좌측 상단) -->
+        <button id="addExerciseBtn"
+            class="absolute top-4 left-4 bg-[#0000FF] text-white text-base px-4 py-2 rounded-md">
+            추가
+        </button>
+
+        <!-- 운동 설정 영역 -->
+        <div id="exerciseArea" class="mt-16 w-full flex flex-col items-center">
+            <!-- "무게", "횟수", "세트" 버튼 -->
+            <div class="flex items-center space-x-4 mb-4 justify-end align-middle">
+                <button class="button">무게</button>
+                <button class="button">횟수</button>
+                <button class="button">세트</button>
+            </div>
+            <!-- 운동 설정 템플릿 -->
+            <div class="exercise-row flex items-center space-x-4 mb-4">
+                <input type="checkbox" id="exerciseSelect" class="w-4 h-4">
+                <label for="exerciseSelect"></label>
+                <select
+                    class="dropdown w-[120px]">
+                    <option value="squat">스쿼트</option>
+                    <option value="benchpress">벤치프레스</option>
+                    <option value="deadlift">데드리프트</option>
+                    <option value="pullup">풀업</option>
+                    <option value="row">바벨로우</option>
+                </select>
+                <!-- 무게 드롭다운 -->
+                <select class="dropdown">
+                    <option value="5">5kg</option>
+                    <option value="10">10kg</option>
+                    <option value="15">15kg</option>
+                    <option value="20">20kg</option>
+                    <option value="25">25kg</option>
+                    <option value="30">30kg</option>
+                    <option value="35">35kg</option>
+                    <option value="40">40kg</option>
+                    <option value="45">45kg</option>
+                    <option value="50">50kg</option>
+                    <option value="55">55kg</option>
+                    <option value="60">60kg</option>
+                    <option value="65">65kg</option>
+                    <option value="70">70kg</option>
+                    <option value="75">75kg</option>
+                    <option value="80">80kg</option>
+                    <option value="85">85kg</option>
+                    <option value="90">90kg</option>
+                    <option value="95">95kg</option>
+                    <option value="100">100kg</option>
+                </select>
+
+                <!-- 횟수 드롭다운 (1회부터 20회까지) -->
+                <select class="dropdown">
+                    <!-- 1회부터 20회까지 선택 가능 -->
+                    <option value="1">1회</option>
+                    <option value="2">2회</option>
+                    <option value="3">3회</option>
+                    <option value="4">4회</option>
+                    <option value="5">5회</option>
+                    <option value="6">6회</option>
+                    <option value="7">7회</option>
+                    <option value="8">8회</option>
+                    <option value="9">9회</option>
+                    <option value="10">10회</option>
+                    <option value="11">11회</option>
+                    <option value="12">12회</option>
+                    <option value="13">13회</option>
+                    <option value="14">14회</option>
+                    <option value="15">15회</option>
+                    <option value="16">16회</option>
+                    <option value="17">17회</option>
+                    <option value="18">18회</option>
+                    <option value="19">19회</option>
+                    <option value="20">20회</option>
+                </select>
+
+                <!-- 세트 드롭다운 (10세트까지) -->
+                <select class="dropdown">
+                    <option value="1">1세트</option>
+                    <option value="2">2세트</option>
+                    <option value="3">3세트</option>
+                    <option value="4">4세트</option>
+                    <option value="5">5세트</option>
+                    <option value="6">6세트</option>
+                    <option value="7">7세트</option>
+                    <option value="8">8세트</option>
+                    <option value="9">9세트</option>
+                    <option value="10">10세트</option>
+                </select>
+                <i class="fas fa-trash delete-icon"></i>
+            </div>
+        </div>
+        <div class="w-[630px] h-[50px] bg-[#E5E5E5]"></div>
     </div>
 
-    <!-- 무게, 횟수, 세트 버튼 (추가 버튼 오른쪽 아래) -->
-    <div class="absolute top-20 right-12 flex space-x-10">
-      <button class="bg-[#25552A] text-white text-lg px-4 py-2 rounded-md">
-        무게
-      </button>
-      <button class="bg-[#25552A] text-white text-lg px-4 py-2 rounded-md">
-        횟수
-      </button>
-      <button class="bg-[#25552A] text-white text-lg px-4 py-2 rounded-md">
-        세트
-      </button>
+    <!-- 최하단 고정 박스 -->
+    <div class="w-full h-[50px] bg-[#38773E] flex justify-between items-center px-10 fixed bottom-0 left-0">
+        <!-- 오운완 아이콘 좌측에 추가 -->
+        <div class="text-white text-xl font-bold flex items-center space-x-2">
+            <i class="fas fa-dumbbell"></i>
+            <!-- 오운완 아이콘 추가 -->
+            <span>오운완</span>
+        </div>
+
+        <div class="flex items-center space-x-6">
+            <!-- 노션 아이콘 클릭 시 설정된 URL로 이동 -->
+            <a href="https://www.notion.so/1b2d5b3e6ec58080ae3bcc88009abb41?pvs=4" target="_blank">
+                <img src="../../static/images/notion_logo.png" alt="Notion" class="w-8 h-8 cursor-pointer">
+            </a>
+
+            <!-- 깃허브 아이콘 클릭 시 설정된 URL로 이동 -->
+            <a href="https://github.com/craftonjungle8" target="_blank">
+                <img src="../../static/images/github_logo.png" alt="GitHub" class="w-8 h-8 cursor-pointer">
+            </a>
+        </div>
     </div>
 
-    <!-- 무게, 횟수, 세트 드롭다운 (가로로 나열) -->
-    <div class="absolute top-36 right-4 flex space-x-10">
-      <!-- 무게 드롭다운 -->
-      <select class="bg-[#38773E] text-white text-lg px-4 py-2 rounded-md border border-gray-300">
-        <option value="5">5kg</option>
-        <option value="10">10kg</option>
-        <option value="15">15kg</option>
-        <option value="20">20kg</option>
-        <option value="25">25kg</option>
-        <option value="30">30kg</option>
-        <option value="35">35kg</option>
-        <option value="40">40kg</option>
-        <option value="45">45kg</option>
-        <option value="50">50kg</option>
-        <option value="55">55kg</option>
-        <option value="60">60kg</option>
-        <option value="65">65kg</option>
-        <option value="70">70kg</option>
-        <option value="75">75kg</option>
-        <option value="80">80kg</option>
-        <option value="85">85kg</option>
-        <option value="90">90kg</option>
-        <option value="95">95kg</option>
-        <option value="100">100kg</option>
-      </select>
+    <script>
+        const addExerciseBtn = document.getElementById('addExerciseBtn');
+        const exerciseArea = document.getElementById('exerciseArea');
 
-      <!-- 횟수 드롭다운 -->
-      <select class="bg-[#38773E] text-white text-lg px-4 py-2 rounded-md border border-gray-300">
-        <option value="20">20회</option>
-      </select>
+        addExerciseBtn.addEventListener('click', () => {
+            // 템플릿 복사
+            const exerciseRow = document.querySelector('.exercise-row').cloneNode(true);
 
-      <!-- 세트 드롭다운 (10세트까지) -->
-      <select class="bg-[#38773E] text-white text-lg px-4 py-2 rounded-md border border-gray-300">
-        <option value="1">1세트</option>
-        <option value="2">2세트</option>
-        <option value="3">3세트</option>
-        <option value="4">4세트</option>
-        <option value="5">5세트</option>
-        <option value="6">6세트</option>
-        <option value="7">7세트</option>
-        <option value="8">8세트</option>
-        <option value="9">9세트</option>
-        <option value="10">10세트</option>
-      </select>
-    </div>
-  </div>
+            // 삭제 아이콘에 이벤트 리스너 추가
+            const deleteIcon = exerciseRow.querySelector('.delete-icon');
+            deleteIcon.addEventListener('click', () => {
+                exerciseRow.remove();
+            });
 
-  <!-- 최하단 고정 박스 -->
-  <div class="w-full h-[50px] bg-[#38773E] flex justify-between items-center px-10 fixed bottom-0 left-0">
-    <!-- 오운완 아이콘 좌측에 추가 -->
-    <div class="text-white text-xl font-bold flex items-center space-x-2">
-      <i class="fas fa-dumbbell"></i> <!-- 오운완 아이콘 추가 -->
-      <span>오운완</span>
-    </div>
+            // 운동 영역에 추가
+            exerciseArea.appendChild(exerciseRow);
+        });
 
-    <div class="flex items-center space-x-6">
-      <!-- 노션 아이콘 클릭 시 설정된 URL로 이동 -->
-      <a href="https://www.notion.so/1b2d5b3e6ec58080ae3bcc88009abb41?pvs=4" target="_blank">
-        <img src="../../static/images/notion_logo.png" alt="Notion" class="w-8 h-8 cursor-pointer">
-      </a>
-
-      <!-- 깃허브 아이콘 클릭 시 설정된 URL로 이동 -->
-      <a href="https://github.com/craftonjungle8" target="_blank">
-        <img src="../../static/images/github_logo.png" alt="GitHub" class="w-8 h-8 cursor-pointer">
-      </a>
-    </div>
-  </div>
+        // 최초 운동 삭제 아이콘에 이벤트 리스너 추가
+        const initialDeleteIcon = document.querySelector('.delete-icon');
+        initialDeleteIcon.addEventListener('click', () => {
+            const exerciseRow = initialDeleteIcon.closest('.exercise-row');
+            exerciseRow.remove();
+        });
+    </script>
 
 </body>
+
 </html>

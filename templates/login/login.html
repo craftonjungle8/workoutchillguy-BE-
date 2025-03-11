@@ -1,11 +1,73 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>로그인 페이지</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="bg-white flex justify-center items-center min-h-screen">
+  <!-- 상단 오운완 텍스트 -->
+  <div class="absolute top-5 left-0 right-0 text-center text-4xl font-bold text-gray-800">
+    오운완
+  </div>
+
+  <!-- 로그인 박스 -->
+  <div class="bg-white p-8 rounded-lg shadow-lg w-[673px] h-[734px] mt-10 flex flex-col items-center justify-center">
+    <h2 class="text-2xl font-bold text-center mb-4 text-[#38773E]">Log In</h2>
+    <form id="loginForm" class="w-full flex flex-col items-center">
+      <!-- 이메일 입력란 -->
+      <div class="mb-4">
+        <input type="email" id="username" name="username" class="w-[363.34px] h-[59.31px] p-2 border border-gray-300 bg-gray-200 rounded-lg mt-1 text-left" placeholder="Email" required>
+      </div>
+      <!-- 비밀번호 입력란 -->
+      <div class="mb-4">
+        <input type="password" id="password" name="password" class="w-[363.34px] h-[59.31px] p-2 border border-gray-300 bg-gray-200 rounded-lg mt-1 text-left" placeholder="Password" required>
+      </div>
+      <!-- 로그인 버튼 -->
+      <button type="submit" class="w-[363.34px] h-[59.31px] py-2 text-white font-semibold rounded-lg hover:bg-opacity-80 transition duration-200 text-center" style="background-color: #38773E;">로그인</button>
+      <p id="error-message" class="text-red-500 mt-4 text-center hidden">잘못된 이메일 또는 비밀번호입니다.</p>
+    </form>
     
+    <!-- 회원가입 문구 -->
+    <p class="text-center mt-6 text-sm text-gray-600">
+      아직 회원이 아니신가요? 
+      <a href="/signup" class="text-blue-500 hover:underline">회원가입하기</a>
+    </p>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    $(document).ready(function() {
+      $('#loginForm').submit(function(e) {
+        e.preventDefault(); // 폼 제출 막기
+
+        var username = $('#username').val();
+        var password = $('#password').val();
+
+        // Ajax로 로그인 요청 (백엔드에 실제 요청이 필요하지만 여기서는 생략)
+        $.ajax({
+          url: '/login', // 백엔드 URL에 맞게 수정
+          type: 'POST',
+          data: {
+            username: username,
+            password: password
+          },
+          success: function(response) {
+            // 로그인 성공 시 처리
+            if (response.success) {
+              window.location.href = '/dashboard'; // 대시보드로 이동
+            } else {
+              $('#error-message').show(); // 에러 메시지 표시
+            }
+          },
+          error: function() {
+            $('#error-message').show(); // 에러 발생 시 메시지 표시
+          }
+        });
+      });
+    });
+  </script>
 </body>
 </html>

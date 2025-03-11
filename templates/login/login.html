@@ -78,10 +78,12 @@
         $.ajax({
           url: '/login', // 백엔드 URL에 맞게 수정
           type: 'POST',
-          data: {
-            username: username,
+          contentType: 'application/json',  // Content-Type을 application/json으로 설정
+          data: JSON.stringify({  // 데이터는 JSON 형식으로 변환
+            nickname: nickname,
+            email: email,
             password: password
-          },
+          }),
           success: function(response) {
             // 로그인 성공 시 처리
             if (response.success) {

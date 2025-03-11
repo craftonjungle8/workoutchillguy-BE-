@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>메이트 찾기</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="flex flex-col items-center min-h-screen">
+
+    <!-- 상단 헤더 -->
+    <div class="w-[1017px] h-[94px] bg-white p-4 flex justify-between items-center border-b border-gray-300">
+        <div class="text-3xl font-bold text-gray-800">오운완</div>
+        <div class="flex space-x-6 text-sm text-gray-800"> 
+            <a href="/mate-search" class="text-[#38773E] hover:text-[#2E5F31] font-semibold transition duration-300">메이트찾기</a>
+            <a href="/mypage" class="text-gray-800 hover:text-[#38773E] transition duration-300">마이페이지</a>
+            <a href="#" id="logoutBtn" class="text-gray-800 hover:text-[#38773E] transition duration-300">로그아웃</a>
+        </div>
+    </div>
+
+    <!-- 게시글 목록 -->
+    <div class="flex flex-col items-center w-full mt-8">
+        <div class="grid grid-cols-3 gap-4 w-[1017px]" id="postGrid">
+            <!-- 게시글 카드들이 여기에 추가됩니다 -->
+        </div>
+
+        <!-- 페이지네이션 -->
+        <div class="flex space-x-2 mt-20">
+            <button id="prevPage" class="px-4 py-2 bg-green-700 text-white rounded disabled:opacity-50" disabled>이전</button>
+            <span id="pageIndicator" class="text-lg font-semibold">1</span>
+            <button id="nextPage" class="px-4 py-2 bg-green-700 text-white rounded">다음</button>
+        </div>
+    </div>
+
+    <!-- 게시글 상세 모달 -->
+    <div id="postModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="w-[830px] h-[550px] bg-white rounded-lg p-6 relative">
+            <button id="closeModal" class="absolute top-4 right-4 text-gray-500 text-2xl">&times;</button>
+            <h2 id="modalTitle" class="text-2xl font-bold mb-2"></h2>
+            <p id="modalDate" class="text-sm text-gray-500"></p>
+            <p id="modalContent" class="h-[220px] mt-4"></p>
+
+            <!-- 댓글 섹션 -->
+            <div class="mt-6 bg-gray-100 p-4 rounded-lg">
+                <h3 class="text-lg font-semibold">댓글</h3>
+                <div id="commentList" class="mt-2 space-y-2">
+                    <!-- 예시 댓글 -->
+                    <div class="p-2 border-b border-gray-300">
+                        <p class="text-sm font-semibold">운동왕 <span class="text-gray-500 text-xs">(2025-03-10 14:30)</span></p>
+                        <p class="text-gray-800">오늘 운동 끝냈어요!🔥</p>
+                    </div>
+                </div>
+
+                <!-- 댓글 입력 -->
+                <div class="flex mt-4 space-x-2">
+                    <input id="commentInput" type="text" placeholder="댓글을 입력하세요" class="flex-grow p-2 border rounded-md">
+                    <button id="addComment" class="bg-green-700 text-white px-4 py-2 rounded-md">작성</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 하단 푸터 -->
+    <div class="w-full h-[50px] bg-[#38773E] flex justify-between items-center px-10 fixed bottom-0 left-0">
+        <div class="text-white text-xl font-bold flex items-center space-x-2">
+            <i class="fas fa-dumbbell"></i>
+            <span>오운완</span>
+        </div>
+        <div class="flex items-center space-x-6">
+            <a href="https://www.notion.so"><img src="../../static/images/notion_logo.png" alt="Notion" class="w-8 h-8 cursor-pointer"></a>
+            <a href="https://github.com"><i class="fab fa-github text-white text-3xl cursor-pointer"></i></a>
+        </div>
+    </div>
+
+    <script>
+        const posts = Array.from({ length: 20 }, (_, i) => ({
+            title: `게시글 제목 ${i + 1}`,
+            date: `2025-03-${String(i % 28 + 1).padStart(2, '0')}`,
+            content: `이것은 게시글 ${i + 1}의 상세 내용입니다.`,
+        }));
+        const postsPerPage = 9;
+        let currentPage = 1;
+
+        function renderPosts() {
+            const grid = document.getElementById("postGrid");
+            grid.innerHTML = "";
+            const start = (currentPage - 1) * postsPerPage;
+            const end = start + postsPerPage;
+            const visiblePosts = posts.slice(start, end);
+
+            visiblePosts.forEach(post => {
+                const card = document.createElement("div");
+                card.className = "w-[320px] h-[180px] bg-white p-4 shadow-md rounded-lg flex flex-col justify-between cursor-pointer";
+                card.innerHTML = `
+                    <h3 class="text-lg font-bold">${post.title}</h3>
+                    <p class="text-sm text-gray-500">${post.date}</p>
+                `;
+                card.addEventListener("click", () => openModal(post));
+                grid.appendChild(card);
+            });
+
+            document.getElementById("pageIndicator").textContent = currentPage;
+            document.getElementById("prevPage").disabled = currentPage === 1;
+            document.getElementById("nextPage").disabled = end >= posts.length;
+        }
+
+        document.getElementById("prevPage").addEventListener("click", () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderPosts();
+            }
+        });
+
+        document.getElementById("nextPage").addEventListener("click", () => {
+            if (currentPage * postsPerPage < posts.length) {
+                currentPage++;
+                renderPosts();
+            }
+        });
+
+        function openModal(post) {
+            document.getElementById("modalTitle").textContent = post.title;
+            document.getElementById("modalDate").textContent = post.date;
+            document.getElementById("modalContent").textContent = post.content;
+            document.getElementById("postModal").classList.remove("hidden");
+        }
+
+        document.getElementById("closeModal").addEventListener("click", () => {
+            document.getElementById("postModal").classList.add("hidden");
+        });
+
+        async function fetchNickname() {
+            try {
+                const response = await fetch("/user-info");
+                const data = await response.json();
+                if (data.nickname) {
+                    document.getElementById("nickname").value = data.nickname;
+                }
+            } catch (error) {
+                console.error("닉네임 불러오기 실패:", error);
+            }
+        }
+
+        document.getElementById("addComment").addEventListener("click", function () {
+            const nickname = document.getElementById("nickname").value;
+            const commentText = document.getElementById("commentInput").value.trim();
+            if (!nickname || !commentText) return;
+
+            const now = new Date().toLocaleString("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+
+            document.getElementById("commentList").innerHTML += `
+                <div class="p-2 border-b border-gray-300">
+                    <p class="text-sm font-semibold">${nickname} <span class="text-gray-500 text-xs">(${now})</span></p>
+                    <p class="text-gray-800">${commentText}</p>
+                </div>
+            `;
+
+            document.getElementById("commentInput").value = "";
+        });
+
+        window.onload = fetchNickname;
+        renderPosts();
+    </script>
+</body>
+</html>

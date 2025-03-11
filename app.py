@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 app = Flask(__name__)
 
 @app.route('/')
@@ -23,6 +23,6 @@ def diary():
 
 @app.route('/board')
 def board():
-   return 'This is borad'
+   return 'This is board'
 if __name__ == '__main__':  
    app.run('0.0.0.0', port=5000, debug=True)

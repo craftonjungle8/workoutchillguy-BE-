@@ -1,3 +1,5 @@
+edit_post.html
+
 <!-- templates/board/edit_post.html -->
 <!DOCTYPE html>
 <html lang="ko">
@@ -13,30 +15,23 @@
             box-shadow: none;
         }
     </style>
-    <!-- FontAwesome CSS CDN -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 </head>
 <body class="flex flex-col items-center min-h-screen">
 
-    <!-- 상단 오운완 박스 -->
     <div class="w-[1017px] h-[94px] bg-white p-4 flex justify-between items-center border-b border-gray-300">
         <div class="text-3xl font-bold text-gray-800">오운완</div>
         <div class="flex space-x-6 text-sm text-gray-800">
-            <!-- 메이트찾기, 마이페이지, 로그아웃 링크 -->
             <a href="/mate-search" class="text-[#38773E] hover:text-[#2E5F31] font-semibold transition duration-300">메이트찾기</a>
             <a href="/mypage" class="text-gray-800 hover:text-[#38773E] transition duration-300">마이페이지</a>
             <a href="/logout" class="text-gray-800 hover:text-[#38773E] transition duration-300" id="logoutBtn">로그아웃</a>
         </div>
     </div>
 
-    <!-- 글 수정 폼 -->
     <div class="bg-gray-100 p-8 rounded-xl shadow-lg w-[600px] mt-10">
         <h2 class="text-2xl font-bold mb-4 text-center">게시글 수정</h2>
         
-        <!-- 기존 게시글의 post_id와 연결. 
-             Flask에서는 url_for('edit_post', post_id=post.id) 로 POST 전송 -->
         <form method="POST" action="{{ url_for('edit_post', post_id=post.id) }}" class="flex flex-col items-center">
-            <!-- 제목 (기존 게시글 제목) -->
             <input 
                 type="text" 
                 name="title" 
@@ -45,14 +40,12 @@
                 value="{{ post.title }}"
             >
 
-            <!-- 내용 (기존 게시글 내용) -->
             <textarea 
                 name="content" 
                 class="w-full p-3 border border-green-700 rounded-xl mb-4 h-80" 
                 required
             >{{ post.content }}</textarea>
 
-            <!-- 수정 버튼 -->
             <button 
                 type="submit" 
                 class="w-1/4 bg-[#38773E] text-white p-3 rounded-xl hover:bg-green-700"
@@ -61,7 +54,6 @@
             </button>
         </form>
 
-        <!-- 게시글 삭제 -->
         <form method="POST"
               action="{{ url_for('delete_post', post_id=post.id) }}"
               class="flex flex-col items-center mt-4"
@@ -75,19 +67,14 @@
             </button>
         </form>
         
-        <!-- 에러/성공 메시지가 필요하다면 Jinja2로 전달하거나 JS로 처리 가능 -->
         <p id="message" class="mt-4 text-center text-red-500 hidden"></p>
     </div>
 
-    <!-- 하단 고정 박스 -->
     <div class="w-full h-[50px] bg-[#38773E] flex justify-between items-center px-10 fixed bottom-0 left-0">
-        <!-- 오운완 아이콘 -->
         <div class="text-white text-xl font-bold flex items-center space-x-2">
             <i class="fas fa-dumbbell"></i>
             <span>오운완</span>
         </div>
-
-        <!-- 우측 노션, 깃허브 아이콘 -->
         <div class="flex items-center space-x-6">
             <div class="relative">
                 <img src="../../static/images/notion_logo.png" alt="Notion" class="w-8 h-8 cursor-pointer" id="notionIcon">
@@ -111,6 +98,18 @@
             // 필요 시 localStorage 토큰 제거 등 로직...
             // 그 후 /logout으로 이동
         });
+
+        // 수정 완료 시 alert 표시 및 페이지 리다이렉트
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('success')) {
+                alert("수정이 완료되었습니다.");
+                window.location.href = "/board";  // 게시글 목록으로 리다이렉트
+            }
+        };
     </script>
 </body>
 </html>
+
+
+

@@ -14,7 +14,6 @@ users_collection = mongo.db.users
 boards_collection = mongo.db.boards      # 게시판 글
 exercises_collection = mongo.db.exercises  # 운동일기
 
-
 @app.route("/")
 def home():
     current_user = get_current_user()
@@ -24,7 +23,6 @@ def home():
     else:
         # 로그인되지 않은 경우 로그인페이지로
         return redirect(url_for("login_page"))
-
 
 # ----------------------------------------
 # JWT 쿠키 검증 헬퍼 함수
@@ -269,7 +267,7 @@ def mainpage():
     )
 
 # -------------------------
-# 게시판 목록 페이지 (GET)
+# 게시판 목록 페이지 (GET) - 페이지 네이션 적용
 # -------------------------
 @app.route("/board", methods=["GET"])
 def board_list():
@@ -277,22 +275,38 @@ def board_list():
     if not current_user:
         return redirect(url_for("login_page"))
 
-    all_posts = boards_collection.find().sort("created_at", -1)
+    # 페이지 번호와 한 페이지당 게시글 수 설정
+    page = request.args.get("page", 1, type=int)
+    per_page = 9
+
+    # 전체 게시글 수 및 전체 페이지 수 계산
+    total_posts = boards_collection.count_documents({})
+    total_pages = (total_posts + per_page - 1) // per_page
+
+    posts_cursor = boards_collection.find().sort("created_at", -1) \
+                        .skip((page - 1) * per_page).limit(per_page)
     post_list = []
-    for post in all_posts:
+    for post in posts_cursor:
+        created_at = ""
+        if "created_at" in post:
+            try:
+                created_at = post["created_at"].strftime("%Y-%m-%d %H:%M")
+            except Exception:
+                created_at = str(post["created_at"])
         post_list.append({
             "id": str(post["_id"]),
             "title": post["title"],
             "content": post["content"],
-            "created_at": post.get("created_at", "").strftime("%Y-%m-%d %H:%M")
-                          if "created_at" in post else ""
+            "created_at": created_at
         })
 
     return render_template(
         "board/board.html",
         nickname=current_user.get("nickname", ""),
         email=current_user["email"],
-        posts=post_list
+        posts=post_list,
+        current_page=page,
+        total_pages=total_pages
     )
 
 # -------------------------
@@ -441,7 +455,6 @@ def delete_post(post_id):
 
     return redirect(url_for("board_list"))
 
-
 # ---------------------------------
 # (Diary) 날짜별 운동일기 페이지 (GET)
 # ---------------------------------
@@ -560,7 +573,6 @@ def toggle_exercise_check(date_str, exercise_id):
     )
 
     return redirect(url_for("diary_page", date_str=date_str))
-
 
 # ---------------------------------
 # Flask 실행

@@ -8,14 +8,14 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome CSS CDN -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+
 </head>
 <body class="bg-white flex flex-col items-center min-h-screen">
 
   <!-- 상단 오운완 박스 -->
   <div class="w-[1017px] h-[94px] bg-white p-4 flex justify-between items-center border-b border-gray-300">
     <div class="text-3xl font-bold text-gray-800">오운완</div>
-    <div class="flex space-x-6 text-sm text-gray-800"> 
-      <!-- 메이트찾기, 마이페이지, 로그아웃 링크에 hover 효과 추가 -->
+    <div class="flex space-x-6 text-sm text-gray-800">
       <a href="/mate-search" class="text-gray-800 hover:text-[#38773E] transition duration-300">메이트찾기</a>
       <a href="/mypage" class="text-gray-800 hover:text-[#38773E] transition duration-300">마이페이지</a>
       <a href="#" id="logoutBtn" class="text-gray-800 hover:text-[#38773E] transition duration-300">로그아웃</a>
@@ -23,42 +23,84 @@
   </div>
   
   <!-- 마이페이지 박스 -->
-  <div class="bg-white p-8 rounded-lg shadow-lg w-[673px] h-[500px] mt-10 flex flex-col items-center">
+  <div class="bg-white p-8 rounded-lg shadow-lg w-[673px] h-auto mt-10 flex flex-col items-center">
     <h2 class="text-2xl font-bold text-center mb-6 text-[#38773E]">마이페이지</h2>
 
-    <form id="mypageForm" class="w-full flex flex-col items-center">
-      <!-- 닉네임 입력란 -->
+    <!-- 에러/성공 메시지가 있다면 표시 -->
+    {% if error %}
+      <p class="text-red-500 mb-4 text-center">{{ error }}</p>
+    {% endif %}
+    {% if success %}
+      <p class="text-green-500 mb-4 text-center">{{ success }}</p>
+    {% endif %}
+
+    <!-- 닉네임, 비밀번호 수정 폼 (POST) -->
+    <form id="mypageForm" method="POST" action="/mypage/update" class="w-full flex flex-col items-center">
+      <!-- 닉네임 입력란 (서버에서 가져온 닉네임을 기본값으로 표시) -->
       <div class="mb-4">
-        <input type="text" id="nickname" name="nickname" class="w-[363.34px] h-[59.31px] p-2 border border-gray-300 bg-gray-200 rounded-lg mt-1 text-left" placeholder="Nickname" required>
+        <input 
+          type="text" 
+          name="nickname" 
+          class="w-[363.34px] h-[59.31px] p-2 border border-gray-300 bg-gray-200 rounded-lg mt-1 text-left" 
+          placeholder="Nickname" 
+          value="{{ nickname }}"
+          required>
       </div>
-      <!-- 비밀번호 입력란 -->
+      <!-- 비밀번호 입력란 (새 비밀번호 입력 용도) -->
       <div class="mb-4">
-        <input type="password" id="password" name="password" class="w-[363.34px] h-[59.31px] p-2 border border-gray-300 bg-gray-200 rounded-lg mt-1 text-left" placeholder="Password" required>
+        <input 
+          type="password" 
+          name="password" 
+          class="w-[363.34px] h-[59.31px] p-2 border border-gray-300 bg-gray-200 rounded-lg mt-1 text-left" 
+          placeholder="New Password (변경 시에만 입력)" 
+        >
       </div>
       <!-- 수정 버튼 -->
-      <button type="submit" class="w-[363.34px] h-[59.31px] py-2 text-white font-semibold rounded-lg hover:bg-opacity-80 transition duration-200 text-center" style="background-color: #38773E;">수정</button>
+      <button 
+        type="submit" 
+        class="w-[363.34px] h-[59.31px] py-2 text-white font-semibold rounded-lg hover:bg-opacity-80 transition duration-200 text-center"
+        style="background-color: #38773E;"
+      >
+        수정
+      </button>
     </form>
+
+    <!-- 내가 쓴 글 목록 표시 -->
+    <div class="w-full mt-8">
+      <h3 class="text-xl font-bold mb-4 text-[#38773E]">내가 쓴 글</h3>
+      {% if my_posts and my_posts|length > 0 %}
+        <ul class="space-y-2">
+          {% for post in my_posts %}
+          <li class="border-b border-gray-300 pb-2">
+            <!-- 글 제목 + 날짜 표기 -->
+            <a href="/board/{{ post.id }}" class="text-blue-500 hover:underline">
+              {{ post.title }}
+            </a>
+            <span class="text-sm text-gray-500 ml-2">{{ post.created_at }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-gray-600">아직 작성한 글이 없습니다.</p>
+      {% endif %}
+    </div>
   </div>
 
   <!-- 최하단 고정 박스 -->
   <div class="w-full h-[50px] bg-[#38773E] flex justify-between items-center px-10 fixed bottom-0 left-0">
     <!-- 오운완 아이콘 -->
     <div class="text-white text-xl font-bold flex items-center space-x-2">
-        <i class="fas fa-dumbbell"></i> <!-- 오운완 아이콘 -->
-        <span>오운완</span>
-      </a>
+      <i class="fas fa-dumbbell"></i>
+      <span>오운완</span>
     </div>
 
     <!-- 우측 노션과 깃허브 아이콘 -->
     <div class="flex items-center space-x-6">
-      <!-- 노션 아이콘 -->
       <div class="relative">
-        <a href="https://www.notion.so" target="_blank" class="w-8 h-8 cursor-pointer">
-          <img src="../../static/images/notion_logo.png" alt="Notion" class="w-8 h-8">
+        <a href="https://www.notion.so" target="_blank">
+          <img src="../../static/images/notion_logo.png" alt="Notion" class="w-8 h-8 cursor-pointer">
         </a>
       </div>
-
-      <!-- 깃허브 아이콘 -->
       <div class="relative">
         <a href="https://github.com" target="_blank">
           <i class="fab fa-github text-white text-3xl cursor-pointer"></i>
@@ -68,30 +110,11 @@
   </div>
 
   <script>
-    // 노션 아이콘 클릭 시 드롭다운 보이기
-    document.getElementById("notionIcon").addEventListener("click", function() {
-      const dropdown = document.getElementById("notionDropdown");
-      dropdown.classList.toggle("hidden");
-    });
-
-    // 깃허브 아이콘 클릭 시 드롭다운 보이기
-    document.getElementById("githubIcon").addEventListener("click", function() {
-      const dropdown = document.getElementById("githubDropdown");
-      dropdown.classList.toggle("hidden");
-    });
-
-    // 로그아웃 버튼 클릭 시 엑세스 토큰 삭제 및 로그인 페이지로 리다이렉트
+    // 로그아웃
     document.getElementById("logoutBtn").addEventListener("click", function(e) {
       e.preventDefault();
-      
-      // 로컬 스토리지에서 JWT 엑세스 토큰 삭제
       localStorage.removeItem('access_token');
-      
-      // 쿠키에서 토큰 삭제 (필요시 사용)
-      // document.cookie = 'access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-      
-      // 로그아웃 후 로그인 페이지로 리다이렉트
-      window.location.href = '/login'; // 로그인 페이지로 이동
+      window.location.href = '/login';
     });
   </script>
 

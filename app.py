@@ -6,12 +6,30 @@ import datetime
 from bson import ObjectId
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = "your_secret_key"          # 실제 환경에서는 안전하게 보관
+app.config["SECRET_KEY"] = "your_secret_key"  # 실제 환경에서는 안전하게 보관(.env 등)
 app.config["MONGO_URI"] = "mongodb://localhost:27017/1weekmini"
 
 mongo = PyMongo(app)
 users_collection = mongo.db.users
-boards_collection = mongo.db.boards  # 게시글 저장용 컬렉션
+boards_collection = mongo.db.boards      # 게시판 글
+exercises_collection = mongo.db.exercises  # 운동일기
+
+# ----------------------------------------
+# JWT 쿠키 검증을 위한 헬퍼 함수
+# ----------------------------------------
+def get_current_user():
+    """JWT 쿠키('jwt_token')에서 사용자 정보 추출 & DB 조회."""
+    token = request.cookies.get("jwt_token")
+    if not token:
+        return None
+
+    try:
+        data = jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])
+        user_id = data["user_id"]
+        user = users_collection.find_one({"_id": ObjectId(user_id)})
+        return user
+    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+        return None
 
 # -------------------------
 # 회원가입 페이지 (GET)
@@ -84,23 +102,68 @@ def login():
     return resp
 
 # -------------------------
+# 마이페이지 (get)
+# -------------------------
+@app.route("/mypage", methods=["GET"])  
+def mypage():
+    current_user = get_current_user()
+    if not current_user:
+        return redirect(url_for("login_page"))
+
+    # 닉네임
+    nickname = current_user.get("nickname", "")
+
+    # 마이페이지 내가쓴 글 조회 현재 UI 미구현
+    # 내가 쓴 글 목록 (boards_collection에서 user_id = current_user["_id"] 인 것들 찾기)
+    posts_cursor = boards_collection.find({"user_id": current_user["_id"]}).sort("created_at", -1)
+    my_posts = []
+    for p in posts_cursor:
+        my_posts.append({
+            "id": str(p["_id"]),
+            "title": p["title"],
+            "content": p["content"],
+            "created_at": p["created_at"].strftime("%Y-%m-%d %H:%M") if "created_at" in p else ""
+        })
+
+    # 템플릿 렌더
+    return render_template(
+        "mypage/mypage.html",
+        nickname=nickname,
+        my_posts=my_posts
+    )
+
+@app.route("/mypage/update", methods=["POST"])
+def update_mypage():
+    current_user = get_current_user()
+    if not current_user:
+        return redirect(url_for("login_page"))
+
+    new_nickname = request.form.get("nickname")
+    new_password = request.form.get("password")
+
+    # 새 닉네임 업데이트
+    update_fields = {"nickname": new_nickname}
+
+    # 새 비밀번호가 입력되었으면 해싱 후 업데이트
+    if new_password:
+        hashed_pw = bcrypt.hashpw(new_password.encode("utf-8"), bcrypt.gensalt())
+        update_fields["password"] = hashed_pw
+
+    # DB 업데이트
+    users_collection.update_one(
+        {"_id": current_user["_id"]},
+        {"$set": update_fields}
+    )
+
+    # 수정 후 다시 마이페이지로
+    return redirect(url_for("mypage"))
+
+# -------------------------
 # 메인페이지 (GET)
 # -------------------------
 @app.route("/mainpage", methods=["GET"])
 def mainpage():
-    token = request.cookies.get("jwt_token")
-    if not token:
-        # 토큰이 없으면 로그인 페이지로
-        return redirect(url_for("login_page"))
-
-    try:
-        data = jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])
-        user_id = data["user_id"]
-    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
-        return redirect(url_for("login_page"))
-
-    # DB에서 사용자 정보 가져오기
-    current_user = users_collection.find_one({"_id": ObjectId(user_id)})
+    current_user = get_current_user()
     if not current_user:
         return redirect(url_for("login_page"))
 
@@ -117,21 +180,11 @@ def mainpage():
 # -------------------------
 @app.route("/board", methods=["GET"])
 def board_list():
-    token = request.cookies.get("jwt_token")
-    if not token:
-        return redirect(url_for("login_page"))
-
-    try:
-        data = jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])
-        user_id = data["user_id"]
-    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
-        return redirect(url_for("login_page"))
-
-    current_user = users_collection.find_one({"_id": ObjectId(user_id)})
+    current_user = get_current_user()
     if not current_user:
         return redirect(url_for("login_page"))
 
-    # DB에서 게시글 목록 조회 (최신순 정렬 예시)
+    # DB에서 게시글 목록 조회 (최신순 정렬)
     all_posts = boards_collection.find().sort("created_at", -1)
     post_list = []
     for post in all_posts:
@@ -139,10 +192,10 @@ def board_list():
             "id": str(post["_id"]),
             "title": post["title"],
             "content": post["content"],
-            "created_at": post["created_at"].strftime("%Y-%m-%d %H:%M") if "created_at" in post else ""
+            "created_at": post.get("created_at", "").strftime("%Y-%m-%d %H:%M")
+                          if "created_at" in post else ""
         })
 
-    # board/board.html 템플릿에 posts 전달
     return render_template(
         "board/board.html",
         nickname=current_user.get("nickname", ""),
@@ -155,35 +208,23 @@ def board_list():
 # -------------------------
 @app.route("/board/<post_id>", methods=["GET"])
 def board_detail(post_id):
-    token = request.cookies.get("jwt_token")
-    if not token:
-        return redirect(url_for("login_page"))
-
-    try:
-        data = jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])
-        user_id = data["user_id"]
-    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
-        return redirect(url_for("login_page"))
-
-    current_user = users_collection.find_one({"_id": ObjectId(user_id)})
+    current_user = get_current_user()
     if not current_user:
         return redirect(url_for("login_page"))
 
-    # DB에서 해당 게시글 찾기
     post_doc = boards_collection.find_one({"_id": ObjectId(post_id)})
     if not post_doc:
         # 없는 게시글이면 /board 로 이동
         return redirect(url_for("board_list"))
 
-    # jinja2에 넘길 데이터 구성
     post_data = {
         "id": str(post_doc["_id"]),
         "title": post_doc["title"],
         "content": post_doc["content"],
-        "created_at": post_doc["created_at"].strftime("%Y-%m-%d %H:%M") if "created_at" in post_doc else "",
+        "created_at": post_doc.get("created_at", "").strftime("%Y-%m-%d %H:%M")
+                      if "created_at" in post_doc else "",
     }
 
-    # board/posting.html 템플릿에 post 전달
     return render_template(
         "board/posting.html",
         nickname=current_user.get("nickname", ""),
@@ -191,37 +232,15 @@ def board_detail(post_id):
         post=post_data
     )
 
-# -------------------------
-# 로그아웃 (쿠키 제거)
-# -------------------------
-@app.route("/logout", methods=["GET"])
-def logout():
-    resp = make_response(redirect(url_for("login_page")))
-    resp.set_cookie("jwt_token", "", expires=0)
-    return resp
-
 # ---------------------------------
 # 글 작성 폼 페이지 (GET)
 # ---------------------------------
 @app.route("/board/new", methods=["GET"])
 def new_post_page():
-    # JWT 쿠키 확인 (로그인 여부)
-    token = request.cookies.get("jwt_token")
-    if not token:
-        return redirect(url_for("login_page"))
-
-    try:
-        data = jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])
-        user_id = data["user_id"]
-    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
-        return redirect(url_for("login_page"))
-
-    current_user = users_collection.find_one({"_id": ObjectId(user_id)})
+    current_user = get_current_user()
     if not current_user:
         return redirect(url_for("login_page"))
 
-    # jinja2 템플릿: posting.html 렌더
-    # 필요하다면 nickname, email 넘길 수도 있음
     return render_template(
         "board/posting.html",
         nickname=current_user.get("nickname", ""),
@@ -233,25 +252,13 @@ def new_post_page():
 # ---------------------------------
 @app.route("/board/new", methods=["POST"])
 def create_post():
-    token = request.cookies.get("jwt_token")
-    if not token:
-        return redirect(url_for("login_page"))
-
-    try:
-        data = jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])
-        user_id = data["user_id"]
-    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
-        return redirect(url_for("login_page"))
-
-    current_user = users_collection.find_one({"_id": ObjectId(user_id)})
+    current_user = get_current_user()
     if not current_user:
         return redirect(url_for("login_page"))
 
-    # 폼 데이터 받기
     title = request.form.get("title")
     content = request.form.get("content")
 
-    # DB에 새 게시글 저장
     new_post = {
         "title": title,
         "content": content,
@@ -263,5 +270,107 @@ def create_post():
     # 글 작성 완료 → 게시판 목록 페이지로 이동
     return redirect(url_for("board_list"))
 
+# -------------------------
+# 로그아웃 (쿠키 제거)
+# -------------------------
+@app.route("/logout", methods=["GET"])
+def logout():
+    resp = make_response(redirect(url_for("login_page")))
+    resp.set_cookie("jwt_token", "", expires=0)
+    return resp
+
+# ---------------------------------
+# (Diary) 날짜별 운동일기 페이지 (GET)
+# 예: /diary/2025-03-10
+# ---------------------------------
+@app.route("/diary/<date_str>", methods=["GET"])
+def diary_page(date_str):
+    current_user = get_current_user()
+    if not current_user:
+        return redirect(url_for("login_page"))
+
+    # DB에서 (user_id + 날짜)로 운동기록 검색
+    user_id = current_user["_id"]
+    diary_exercises = exercises_collection.find({
+        "user_id": user_id,
+        "date": date_str
+    })
+
+    # jinja2에 넘길 리스트 변환
+    exercise_list = []
+    for e in diary_exercises:
+        exercise_list.append({
+            "_id": str(e["_id"]),
+            "exercise": e.get("exercise", ""),
+            "weight": e.get("weight", 0),
+            "reps": e.get("reps", 0),
+            "sets": e.get("sets", 0),
+            "checked": e.get("checked", False)
+        })
+
+    # diary.html 템플릿 렌더
+    return render_template(
+        "diary/diary.html",
+        nickname=current_user["nickname"],
+        diary_date=date_str,
+        exercises=exercise_list
+    )
+
+# ---------------------------------
+# (Diary) 운동 기록 추가 (POST)
+# /diary/<date_str>/add
+# ---------------------------------
+@app.route("/diary/<date_str>/add", methods=["POST"])
+def add_exercise(date_str):
+    current_user = get_current_user()
+    if not current_user:
+        return redirect(url_for("login_page"))
+
+    user_id = current_user["_id"]
+
+    # 폼 데이터
+    exercise_name = request.form.get("exercise_name")
+    weight = int(request.form.get("weight", 0))
+    reps = int(request.form.get("reps", 0))
+    sets = int(request.form.get("sets", 0))
+
+    new_ex = {
+        "user_id": user_id,
+        "date": date_str,
+        "exercise": exercise_name,
+        "weight": weight,
+        "reps": reps,
+        "sets": sets,
+        "checked": False
+    }
+    exercises_collection.insert_one(new_ex)
+
+    # 추가 후 같은 날짜 diary 페이지로
+    return redirect(url_for("diary_page", date_str=date_str))
+
+# ---------------------------------
+# (Diary) 운동 기록 삭제 (POST)
+# /diary/<date_str>/delete/<exercise_id>
+# ---------------------------------
+@app.route("/diary/<date_str>/delete/<exercise_id>", methods=["POST"])
+def delete_exercise(date_str, exercise_id):
+    current_user = get_current_user()
+    if not current_user:
+        return redirect(url_for("login_page"))
+
+    user_id = current_user["_id"]
+
+    # DB에서 해당 문서 삭제
+    exercises_collection.delete_one({
+        "_id": ObjectId(exercise_id),
+        "user_id": user_id,
+        "date": date_str
+    })
+
+    return redirect(url_for("diary_page", date_str=date_str))
+
+# ---------------------------------
+# Flask 실행
+# ---------------------------------
 if __name__ == "__main__":
     app.run("0.0.0.0", port=5001, debug=True)

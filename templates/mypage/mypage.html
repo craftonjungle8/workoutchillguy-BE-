@@ -92,10 +92,22 @@
 <!-- 게시글 상세 모달 (마이페이지 템플릿 내에 추가) -->
 <div id="postModal" class="fixed inset-0 flex items-center justify-center bg-[#FFECD1] bg-opacity-50 hidden">
   <div class="bg-white w-[830px] h-[650px] p-6 rounded-lg shadow-lg flex flex-col overflow-y-auto">
-    <h2 id="modalTitle" class="text-3xl font-bold text-gray-800"></h2>
+    <!-- 제목과 수정/삭제 버튼 영역 -->
+    <div class="flex justify-between items-center mb-4">
+      <h2 id="modalTitle" class="text-3xl font-bold text-gray-800"></h2>
+      <!-- 수정/삭제 버튼 (마이페이지에서는 본인이 작성한 글이므로 항상 노출) -->
+      <div class="flex space-x-2">
+        <form method="GET" id="editPostForm">
+          <button type="submit" class="bg-yellow-500 text-white p-2 rounded-lg hover:bg-yellow-600">수정하기</button>
+        </form>
+        <form method="POST" id="deletePostForm">
+          <button type="submit" class="bg-red-600 text-white p-2 rounded-lg hover:bg-red-700">삭제하기</button>
+        </form>
+      </div>
+    </div>
+
     <div class="flex justify-between items-center">
       <p id="modalDate" class="text-sm text-gray-500 mb-4"></p>
-      <!-- 게시글 작성자(닉네임) -->
       <p id="modalNickname" class="text-lg font-bold text-[#38773E] mb-4">{{ nickname }}</p>
     </div>
     <div id="modalContent" class="border p-4 h-[200px] overflow-y-auto bg-gray-100 rounded"></div>
@@ -148,26 +160,49 @@
 <script>
   let currentPostId = null; // 현재 모달에 표시 중인 게시글 ID
 
-  // 마이페이지 게시글 클릭 시 모달 열기
-  const mypostItems = document.querySelectorAll('.mypostItem');
-  mypostItems.forEach(item => {
-    item.addEventListener('click', () => {
-      const title = item.getAttribute('data-title');
-      const content = item.getAttribute('data-content');
-      const date = item.getAttribute('data-date');
-      currentPostId = item.getAttribute('data-id'); // 게시글 ID 저장
+  // 마이페이지 게시글 클릭 시 모달 열기 (기존 코드 내에서)
+const mypostItems = document.querySelectorAll('.mypostItem');
+mypostItems.forEach(item => {
+  item.addEventListener('click', () => {
+    const title = item.getAttribute('data-title');
+    const content = item.getAttribute('data-content');
+    const date = item.getAttribute('data-date');
+    currentPostId = item.getAttribute('data-id'); // 게시글 ID 저장
 
-      document.getElementById('modalTitle').textContent = title;
-      document.getElementById('modalContent').textContent = content;
-      document.getElementById('modalDate').textContent = date;
-      
-      // 댓글 로드
-      loadComments(currentPostId);
-      
-      // 모달 표시
-      document.getElementById('postModal').classList.remove('hidden');
-    });
+    document.getElementById('modalTitle').textContent = title;
+    document.getElementById('modalContent').textContent = content;
+    document.getElementById('modalDate').textContent = date;
+    
+    // 댓글 로드
+    loadComments(currentPostId);
+    
+    // 모달 표시
+    document.getElementById('postModal').classList.remove('hidden');
   });
+});
+
+// 수정 버튼 이벤트 (게시글 편집 페이지로 이동)
+document.getElementById('editPostForm').onsubmit = function(event) {
+  event.preventDefault();
+  // 게시글 수정 페이지는 board/<post_id>/edit 경로를 사용
+  window.location.href = `/board/${currentPostId}/edit`;
+};
+
+// 삭제 버튼 이벤트 (경고창 표시 후 삭제 API 호출)
+document.getElementById('deletePostForm').onsubmit = function(event) {
+  event.preventDefault();
+  if (confirm("정말 삭제하시겠습니까?")) {
+    fetch(`/board/${currentPostId}/delete`, { method: 'POST' })
+      .then(response => {
+        if(response.ok){
+          location.reload();
+        } else {
+          console.error('삭제 실패:', response.statusText);
+        }
+      })
+      .catch(err => console.error('삭제 에러:', err));
+  }
+};
 
   // 댓글 로드 함수
   function loadComments(postId) {

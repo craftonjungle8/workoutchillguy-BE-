@@ -43,8 +43,8 @@
     </div>
   </div>
 
-  <!-- 페이지 네이션 -->
-  <div class="flex justify-center mt-8 space-x-2">
+<!-- 페이지 네이션 -->
+<div class="flex justify-center mt-8 space-x-2">
     {% for p in range(1, total_pages + 1) %}
       <a href="{{ url_for('board_list', page=p) }}"
          class="px-3 py-2 rounded transition duration-300 
@@ -56,7 +56,7 @@
         {{ p }}
       </a>
     {% endfor %}
-  </div>
+</div>
 
   <!-- 게시글 상세 모달 (댓글 기능 포함) -->
   <div id="postModal" class="fixed inset-0 flex items-center justify-center bg-[#FFECD1] bg-opacity-50 hidden">

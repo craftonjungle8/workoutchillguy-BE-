@@ -381,7 +381,7 @@ def board_detail(post_id):
         "title": post_doc["title"],
         "content": post_doc["content"],
         "created_at": (post_doc["created_at"] + datetime.timedelta(hours=9)).strftime("%Y-%m-%d %H:%M")
-                      if "created_at" in post_doc else ""
+        if "created_at" in post_doc else ""
     }
 
     return render_template(
@@ -487,7 +487,8 @@ def edit_post(post_id):
     )
 
     flash("수정이 완료되었습니다.")  # 수정 완료 메시지
-    return redirect(url_for("board_list"))  # 게시글 리스트로 이동
+    return redirect(url_for("board_list"))  # 수정 후 게시글 목록 페이지로 리다이렉트, total_pages가 템플릿에 전달됨
+
 
 # -------------------------
 # 게시글 삭제 (POST)

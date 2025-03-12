@@ -3,20 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <title>로그인 페이지</title>
+
+<link rel="icon" href="static/images/favicon.png" type="image/png">
+
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Font Awesome -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js" crossorigin="anonymous"></script>
 </head>
 <body class="bg-white flex justify-center items-center min-h-screen">
-  <!-- 상단 텍스트 -->
-  <div class="absolute top-5 left-0 right-0 text-center text-4xl font-bold text-gray-800">
-    오운완
-  </div>
 
   <!-- 로그인 박스 -->
-  <div class="bg-white p-8 rounded-lg shadow-lg w-[673px] h-[734px] mt-10 flex flex-col items-center justify-center">
-    <h2 class="text-2xl font-bold text-center mb-4 text-[#38773E]">Log In</h2>
+<div class="bg-white p-8 rounded-lg shadow-lg w-[673px] h-[734px] mt-10 flex flex-col items-center justify-center">
+  <!-- 아이콘과 로그인 텍스트 -->
+  <div class="flex flex-col items-center mb-4">
+    <i class="fas fa-dumbbell text-4xl text-[#38773E] mb-2"></i>
+    <h2 class="text-2xl font-bold text-center text-[#38773E]">Log In</h2>
+  </div>
     
     <!-- 로그인 폼 -->
     <form action="/login" method="POST" class="w-full flex flex-col items-center">
@@ -74,14 +77,12 @@
   <img src="/static/images/notion_logo.png" alt="Notion" class="w-6 h-6 cursor-pointer">
 </a>
 
-<!-- 깃허브 아이콘 -->
-<a href="https://github.com/craftonjungle8" target="_blank" class="relative">
+ <!-- 깃허브 아이콘 -->
+ <a href="https://github.com/craftonjungle8" target="_blank" class="relative">
   <img src="/static/images/github_logo.png" alt="GitHub" class="w-6 h-6 cursor-pointer">
 </a>
-
-        ></i>
-      </div>
-    </div>
-  </div>
+</div>
+</div>
 </body>
 </html>
+

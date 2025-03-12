@@ -57,26 +57,30 @@
   </div>
 
   <!-- 게시글 상세 모달 (댓글 기능 포함) -->
-  <div id="postModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
-    <div class="bg-white w-[830px] h-[650px] p-6 rounded-lg shadow-lg flex flex-col overflow-y-auto">
-      <h2 id="modalTitle" class="text-2xl font-bold text-gray-800"></h2>
-      <p id="modalDate" class="text-sm text-gray-500 mb-4"></p>
-      <div id="modalContent" class="border p-4 h-[300px] overflow-y-auto bg-gray-100 rounded"></div>
-      
-      <!-- 댓글 섹션 -->
-      <div id="modalCommentSection" class="mt-4">
-        <h3 class="text-lg font-bold">댓글 작성</h3>
-        <textarea id="commentInput" class="w-full h-[80px] p-2 border rounded mt-2" placeholder="댓글을 입력하세요..."></textarea>
-        <button id="submitComment" class="mt-2 px-4 py-2 bg-blue-500 text-white rounded">작성</button>
-        <div id="commentList" class="mt-4">
-          <h3 class="text-lg font-bold">댓글 목록</h3>
-          <ul class="mt-2 space-y-2"></ul>
-        </div>
-      </div>
-
-      <button id="closeModal" class="mt-4 px-4 py-2 bg-red-500 text-white rounded">닫기</button>
+<div id="postModal" class="fixed inset-0 flex items-center justify-center bg-[#FFECD1] bg-opacity-50 hidden">
+  <div class="bg-white w-[830px] h-[650px] p-6 rounded-lg shadow-lg flex flex-col overflow-y-auto">
+    <h2 id="modalTitle" class="text-3xl font-bold text-gray-800"></h2>
+    <div class="flex justify-between items-center">
+      <p id="modalNickname" class="text-lg font-bold text-[#38773E] mb-4">{{ nickname }}</p>
+      <p id="modalDate" class="text-sm text-gray-500 mb-4 text-right"></p>
     </div>
+    <div id="modalContent" class="border p-4 h-[300px] overflow-y-auto bg-gray-100 rounded"></div>
+    
+    <!-- 댓글 섹션 -->
+    <div id="modalCommentSection" class="mt-4">
+      <h3 class="text-lg font-bold">댓글 작성</h3>
+      <textarea id="commentInput" class="w-full h-[80px] p-2 border rounded mt-2 focus:ring-[#A7D1AB] focus:border-[#A7D1AB] bg-[#F8FAF7]" placeholder="댓글을 입력하세요..."></textarea>
+      <button id="submitComment" class="mt-2 px-4 py-2 bg-blue-500 text-white rounded">작성</button>
+      <div id="commentList" class="mt-4">
+        <h3 class="text-lg font-bold focus:ring-[#A7D1AB] focus:border-[#A7D1AB] bg-[#F8FAF7]">댓글 목록</h3>
+        <ul class="mt-2 space-y-2"></ul>
+      </div>
+    </div>
+
+    <button id="closeModal" class="mt-4 px-4 py-2 bg-red-500 text-white rounded">닫기</button>
   </div>
+</div>
+
 
   <!-- 하단 고정 박스 -->
   <div class="w-full h-[50px] bg-[#38773E] flex justify-between items-center px-10 fixed bottom-0 left-0">

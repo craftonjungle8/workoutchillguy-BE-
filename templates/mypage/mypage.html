@@ -8,7 +8,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome CSS CDN -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-
 </head>
 <body class="bg-white flex flex-col items-center min-h-screen">
 
@@ -28,7 +27,6 @@
   <div class="bg-white p-8 rounded-lg shadow-lg w-[673px] h-auto mt-10 flex flex-col items-center">
     <h2 class="text-2xl font-bold text-center mb-6 text-[#38773E]">마이페이지</h2>
 
-    <!-- 에러/성공 메시지가 있다면 표시 -->
     {% if error %}
       <p class="text-red-500 mb-4 text-center">{{ error }}</p>
     {% endif %}
@@ -38,7 +36,6 @@
 
     <!-- 닉네임, 비밀번호 수정 폼 (POST) -->
     <form id="mypageForm" method="POST" action="/mypage/update" class="w-full flex flex-col items-center">
-      <!-- 닉네임 입력란 (서버에서 가져온 닉네임을 기본값으로 표시) -->
       <div class="mb-4">
         <input 
           type="text" 
@@ -48,7 +45,6 @@
           value="{{ nickname }}"
           required>
       </div>
-      <!-- 비밀번호 입력란 (새 비밀번호 입력 용도) -->
       <div class="mb-4">
         <input 
           type="password" 
@@ -57,7 +53,6 @@
           placeholder="New Password (변경 시에만 입력)" 
         >
       </div>
-      <!-- 수정 버튼 -->
       <button 
         type="submit" 
         class="w-[363.34px] h-[59.31px] py-2 text-white font-semibold rounded-lg hover:bg-opacity-80 transition duration-200 text-center"
@@ -73,12 +68,15 @@
       {% if my_posts and my_posts|length > 0 %}
         <ul class="space-y-2">
           {% for post in my_posts %}
-          <li class="border-b border-gray-300 pb-2 cursor-pointer mypostItem"
-               data-id="{{ post.id }}"
+          <li class="border-b border-gray-300 pb-2">
+            <a href="#" class="text-blue-500 hover:underline postCard"
                data-title="{{ post.title }}"
+               data-date="{{ post.created_at }}"
                data-content="{{ post.content }}"
-               data-date="{{ post.created_at }}">
-            <span class="text-blue-500 hover:underline">{{ post.title }}</span>
+               data-id="{{ post.id }}"
+               data-user-id="{{ post.user_id }}">
+              {{ post.title }}
+            </a>
             <span class="text-sm text-gray-500 ml-2">{{ post.created_at }}</span>
           </li>
           {% endfor %}
@@ -89,38 +87,87 @@
     </div>
   </div>
 
-<!-- 게시글 상세 모달 (마이페이지 템플릿 내에 추가) -->
-<div id="postModal" class="fixed inset-0 flex items-center justify-center bg-[#FFECD1] bg-opacity-50 hidden">
-  <div class="bg-white w-[830px] h-[650px] p-6 rounded-lg shadow-lg flex flex-col overflow-y-auto">
-    <h2 id="modalTitle" class="text-3xl font-bold text-gray-800"></h2>
-    <div class="flex justify-between items-center">
-      <p id="modalDate" class="text-sm text-gray-500 mb-4"></p>
-      <!-- 게시글 작성자(닉네임) -->
-      <p id="modalNickname" class="text-lg font-bold text-[#38773E] mb-4">{{ nickname }}</p>
+  <!-- 게시글 상세 모달 -->
+  <div id="postModal" class="fixed inset-0 flex items-center justify-center bg-[#FFECD1] bg-opacity-50 hidden">
+    <div class="bg-white w-[830px] h-[650px] p-6 rounded-lg shadow-lg flex flex-col overflow-y-auto">
+      <h2 id="modalTitle" class="text-3xl font-bold text-gray-800"></h2>
+      <div>
+        <form method="POST" action="#" id="editPostForm" class="inline hidden">
+            <button type="submit" class="bg-yellow-500 text-white p-2 rounded-lg hover:bg-yellow-600">수정하기</button>
+        </form>
+        <form method="POST" action="#" id="deletePostForm" class="inline hidden">
+            <button type="submit" class="bg-red-600 text-white p-2 rounded-lg hover:bg-red-700">삭제하기</button>
+        </form>
+      </div>
+      <div class="flex justify-between items-center">
+        <p id="modalNickname" class="text-lg font-bold text-[#38773E] mb-4"></p>
+        <p id="modalDate" class="text-sm text-gray-500 mb-4 text-right"></p>
+      </div>
+      <div id="modalContent" class="border p-4 h-[300px] overflow-y-auto bg-gray-100 rounded">
+        <div id="commentList" class="mt-4">
+          <h3 class="text-lg font-bold text-[#38773E]">댓글 목록</h3>
+          <ul class="mt-2 space-y-2"></ul>
+        </div>
+      </div>
+      <button id="closeModal" class="mt-4 px-4 py-2 bg-red-500 text-white rounded">닫기</button>
     </div>
-    <div id="modalContent" class="border p-4 h-[200px] overflow-y-auto bg-gray-100 rounded"></div>
-    
-    <!-- 댓글 섹션 -->
-    <div id="modalCommentSection" class="mt-4">
-      <h3 class="text-lg font-bold text-[#38773E]">댓글</h3>
-      <ul id="commentList" class="mt-2 space-y-2"></ul>
-      <textarea id="commentInput" class="w-full h-[80px] p-2 border border-[#A7D1AB] rounded mt-2 focus:ring-[#A7D1AB] focus:border-[#A7D1AB] bg-[#F8FAF7]" placeholder="댓글을 입력하세요..."></textarea>
-      <button id="submitComment" class="mt-2 px-4 py-2 bg-[#38773E] hover:bg-[#2A592E] text-white rounded transition duration-200">댓글 작성</button>
-    </div>
-
-    <button id="closeModal" class="mt-4 px-4 py-2 bg-red-500 text-white rounded">닫기</button>
   </div>
-</div>
 
-  <!-- 최하단 고정 박스 -->
+  <script>
+    // 현재 사용자 ID 설정 (서버에서 Jinja2를 통해 가져오기)
+    const currentUserId = "{{ current_user['_id'] }}"; 
+
+    // 각 게시글 제목을 클릭하면 모달에 데이터를 채워 넣고 모달을 표시합니다.
+    const postCards = document.querySelectorAll('.postCard');
+    postCards.forEach(card => {
+      card.addEventListener('click', (event) => {
+        event.preventDefault(); // 기본 링크 동작 방지
+
+        const title = card.getAttribute('data-title');
+        const date = card.getAttribute('data-date');
+        const content = card.getAttribute('data-content');
+        const postId = card.getAttribute('data-id');
+        const postUserId = card.getAttribute('data-user-id'); // 게시글 작성자 ID 추가
+
+        // 모달에 데이터 설정
+        document.getElementById('modalTitle').textContent = title;
+        document.getElementById('modalDate').textContent = date;
+        document.getElementById('modalContent').textContent = content;
+
+        // 모달이 열릴 때 이전 댓글 목록 초기화
+        document.querySelector('#commentList ul').innerHTML = ''; // 댓글 목록 초기화
+        document.getElementById('postModal').classList.remove('hidden');
+
+        // 수정 및 삭제 버튼 표시 여부
+        if (postUserId === currentUserId) {
+          document.getElementById('editPostForm').classList.remove('hidden');
+          document.getElementById('deletePostForm').classList.remove('hidden');
+        } else {
+          document.getElementById('editPostForm').classList.add('hidden');
+          document.getElementById('deletePostForm').classList.add('hidden');
+        }
+      });
+    });
+
+    // 모달 닫기 기능
+    document.getElementById('closeModal').addEventListener('click', () => {
+      document.getElementById('postModal').classList.add('hidden');
+    });
+
+    // 로그아웃
+    document.getElementById("logoutBtn").addEventListener("click", function(e) {
+      e.preventDefault();
+      localStorage.removeItem('access_token');
+      window.location.href = '/login';
+    });
+  </script>
+
+  <!-- 하단 고정 박스 -->
   <div class="w-full h-[50px] bg-[#38773E] flex justify-between items-center px-10 fixed bottom-0 left-0">
-    <!-- 오운완 아이콘 -->
     <div class="text-white text-xl font-bold flex items-center space-x-2">
       <i class="fas fa-dumbbell"></i>
       <span>오운완</span>
     </div>
-
-    <!-- 우측 노션과 깃허브 아이콘 -->
     <div class="flex items-center space-x-6">
       <div class="relative">
         <a href="https://www.notion.so" target="_blank">
@@ -134,90 +181,6 @@
       </div>
     </div>
   </div>
-
-  <script>
-    // 로그아웃
-    document.getElementById("logoutBtn").addEventListener("click", function(e) {
-      e.preventDefault();
-      localStorage.removeItem('access_token');
-      window.location.href = '/login';
-    });
-  </script>
-
-
-<script>
-  let currentPostId = null; // 현재 모달에 표시 중인 게시글 ID
-
-  // 마이페이지 게시글 클릭 시 모달 열기
-  const mypostItems = document.querySelectorAll('.mypostItem');
-  mypostItems.forEach(item => {
-    item.addEventListener('click', () => {
-      const title = item.getAttribute('data-title');
-      const content = item.getAttribute('data-content');
-      const date = item.getAttribute('data-date');
-      currentPostId = item.getAttribute('data-id'); // 게시글 ID 저장
-
-      document.getElementById('modalTitle').textContent = title;
-      document.getElementById('modalContent').textContent = content;
-      document.getElementById('modalDate').textContent = date;
-      
-      // 댓글 로드
-      loadComments(currentPostId);
-      
-      // 모달 표시
-      document.getElementById('postModal').classList.remove('hidden');
-    });
-  });
-
-  // 댓글 로드 함수
-  function loadComments(postId) {
-    fetch(`/api/comments/${postId}`)
-      .then(response => response.json())
-      .then(data => {
-        const commentList = document.getElementById('commentList');
-        commentList.innerHTML = ''; // 기존 댓글 삭제
-        data.forEach(comment => {
-          const li = document.createElement('li');
-          li.className = 'p-2 border rounded bg-gray-100';
-          li.innerHTML = `<strong>${comment.user}</strong> <span class="text-sm text-gray-500">${comment.created_at}</span>
-                          <p>${comment.content}</p>`;
-          commentList.appendChild(li);
-        });
-      })
-      .catch(err => console.error('댓글 불러오기 에러:', err));
-  }
-
-  // 댓글 작성 이벤트
-  document.getElementById('submitComment').addEventListener('click', () => {
-    const commentInput = document.getElementById('commentInput');
-    const commentText = commentInput.value.trim();
-    if (!commentText) return;
-    
-    fetch(`/api/comments/${currentPostId}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ content: commentText })
-    })
-    .then(response => response.json())
-    .then(result => {
-      if(result.error){
-        alert(result.error);
-      } else {
-        // 댓글 작성 성공 후 댓글 리스트 갱신
-        loadComments(currentPostId);
-        commentInput.value = '';
-      }
-    })
-    .catch(err => console.error('댓글 작성 에러:', err));
-  });
-
-  // 모달 닫기 기능
-  document.getElementById('closeModal').addEventListener('click', () => {
-    document.getElementById('postModal').classList.add('hidden');
-  });
-</script>
 
 </body>
 </html>

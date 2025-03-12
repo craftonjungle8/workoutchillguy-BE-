@@ -33,9 +33,7 @@
       <div class="w-[320px] h-[180px] bg-white p-4 shadow-md rounded-lg flex flex-col justify-between cursor-pointer postCard"
            data-title="{{ post.title }}"
            data-date="{{ post.created_at }}"
-           data-content="{{ post.content }}"
-           data-id="{{ post.id }}"
-           data-user-id="{{ post.user_id }}">
+           data-content="{{ post.content }}">
         <h3 class="text-lg font-bold" style="max-width: 280px; word-break: break-word;">{{ post.title }}</h3>
         <p class="text-sm text-gray-500 text-right">{{ post.created_at }}</p>
       </div>
@@ -43,8 +41,8 @@
     </div>
   </div>
 
-<!-- 페이지 네이션 -->
-<div class="flex justify-center mt-8 space-x-2">
+  <!-- 페이지 네이션 -->
+  <div class="flex justify-center mt-8 space-x-2">
     {% for p in range(1, total_pages + 1) %}
       <a href="{{ url_for('board_list', page=p) }}"
          class="px-3 py-2 rounded transition duration-300 
@@ -56,35 +54,36 @@
         {{ p }}
       </a>
     {% endfor %}
-</div>
+  </div>
 
-<div id="postModal" class="fixed inset-0 flex items-center justify-center bg-[#FFECD1] bg-opacity-50 hidden">
-  <div class="bg-white w-[830px] h-[650px] p-6 rounded-lg shadow-lg flex flex-col overflow-y-auto">
-    <h2 id="modalTitle" class="text-3xl font-bold text-gray-800"></h2>
-    <div>
-      <form method="POST" action="#" id="editPostForm" class="inline hidden">
-        <button type="submit" class="bg-yellow-500 text-white p-2 rounded-lg hover:bg-yellow-600">수정하기</button>
-      </form>
-      <form method="POST" action="#" id="deletePostForm" class="inline hidden">
-        <button type="submit" class="bg-red-600 text-white p-2 rounded-lg hover:bg-red-700">삭제하기</button>
-      </form>
-    </div>
-    <div class="flex justify-between items-center">
-      <p id="modalNickname" class="text-lg font-bold text-[#38773E] mb-4">{{ nickname }}</p>
-      <p id="modalDate" class="text-sm text-gray-500 mb-4 text-right"></p>
-    </div>
-    <div id="modalContent" class="border p-4 h-[300px] overflow-y-auto bg-gray-100 rounded"></div>
-    
-    <!-- 댓글 섹션 -->
-    <div id="modalCommentSection" class="mt-4">
-      <h3 class="text-lg font-bold text-[#38773E]">댓글 작성</h3>
-      <textarea id="commentInput" class="w-full h-[80px] p-2 border border-[#A7D1AB] rounded mt-2 focus:ring-[#A7D1AB] focus:border-[#A7D1AB] bg-[#F8FAF7]" placeholder="댓글을 입력하세요..."></textarea>
-      <button id="submitComment" class="mt-2 px-4 py-2 bg-[#38773E] hover:bg-[#2A592E] text-white rounded transition duration-200">작성</button>
-      <div id="commentList" class="mt-4">
-        <h3 class="text-lg font-bold text-[#38773E]">댓글 목록</h3>
-        <ul class="mt-2 space-y-2"></ul>
+  <!-- 게시글 상세 모달 (댓글 기능 포함) -->
+  <div id="postModal" class="fixed inset-0 flex items-center justify-center bg-[#FFECD1] bg-opacity-50 hidden">
+    <div class="bg-white w-[830px] h-[650px] p-6 rounded-lg shadow-lg flex flex-col overflow-y-auto">
+      <h2 id="modalTitle" class="text-3xl font-bold text-gray-800"></h2>
+      <div>
+        <form method="POST" action="#" id="editPostForm" class="inline hidden">
+            <button type="submit" class="bg-yellow-500 text-white p-2 rounded-lg hover:bg-yellow-600">수정하기</button>
+        </form>
+        <form method="POST" action="#" id="deletePostForm" class="inline hidden">
+            <button type="submit" class="bg-red-600 text-white p-2 rounded-lg hover:bg-red-700">삭제하기</button>
+        </form>
       </div>
-    </div>
+      <div class="flex justify-between items-center">
+        <p id="modalNickname" class="text-lg font-bold text-[#38773E] mb-4">{{ nickname }}</p>
+        <p id="modalDate" class="text-sm text-gray-500 mb-4 text-right"></p>
+      </div>
+      <div id="modalContent" class="border p-4 h-[300px] overflow-y-auto bg-gray-100 rounded"></div>
+      
+      <!-- 댓글 섹션 -->
+      <div id="modalCommentSection" class="mt-4">
+        <h3 class="text-lg font-bold text-[#38773E]">댓글 작성</h3>
+        <textarea id="commentInput" class="w-full h-[80px] p-2 border border-[#A7D1AB] rounded mt-2 focus:ring-[#A7D1AB] focus:border-[#A7D1AB] bg-[#F8FAF7]" placeholder="댓글을 입력하세요..."></textarea>
+        <button id="submitComment" class="mt-2 px-4 py-2 bg-[#38773E] hover:bg-[#2A592E] text-white rounded transition duration-200">작성</button>
+        <div id="commentList" class="mt-4">
+          <h3 class="text-lg font-bold text-[#38773E] focus:ring-[#A7D1AB] focus:border-[#A7D1AB] bg-[#F8FAF7]">댓글 목록</h3>
+          <ul class="mt-2 space-y-2"></ul>
+        </div>
+      </div>
 
     <button id="closeModal" class="mt-4 px-4 py-2 bg-red-500 text-white rounded">닫기</button>
   </div>
@@ -107,9 +106,10 @@
   </div>
 
   <script>
-    // 현재 사용자 ID (Jinja2에서 전달)
+    // 현재 사용자 ID 설정 (서버에서 Jinja2를 통해 가져오기)
     const currentUserId = "{{ current_user['_id'] }}"; 
-    let currentPostId = null; // 현재 모달에 표시된 게시글 ID
+
+    // 각 게시글 카드를 클릭하면 모달에 데이터를 채워 넣고 모달을 표시합니다.
     const postCards = document.querySelectorAll('.postCard');
     
     // 각 게시글 카드 클릭 시 처리
@@ -119,48 +119,46 @@
         const date = card.getAttribute('data-date');
         const content = card.getAttribute('data-content');
         const postId = card.getAttribute('data-id');
-        const postUserId = card.getAttribute('data-user-id'); // 게시글 작성자 ID
-        
-        currentPostId = postId;  // 현재 게시글 ID 저장
-        
-        // 모달에 게시글 정보 채워넣기
+        const postUserId = card.getAttribute('data-user-id'); // 게시글 작성자 ID 추가
+
         document.getElementById('modalTitle').textContent = title;
         document.getElementById('modalDate').textContent = date;
         document.getElementById('modalContent').textContent = content;
-        
-        // 모달 열릴 때 기존 댓글 목록 초기화 및 DB에서 댓글 불러오기
+
+        // 모달이 열릴 때 이전 댓글 목록 초기화
         document.querySelector('#commentList ul').innerHTML = '';
         loadComments(postId);
         
         // 모달 표시
         document.getElementById('postModal').classList.remove('hidden');
-        
-        // 수정/삭제 버튼 노출 여부 (작성자와 현재 사용자가 일치할 때만 보이도록)
+
+        // 수정 및 삭제 버튼 표시 여부
         if (postUserId === currentUserId) {
-          document.getElementById('editPostForm').classList.remove('hidden');
-          document.getElementById('deletePostForm').classList.remove('hidden');
+            document.getElementById('editPostForm').classList.remove('hidden');
+            document.getElementById('deletePostForm').classList.remove('hidden');
         } else {
-          document.getElementById('editPostForm').classList.add('hidden');
-          document.getElementById('deletePostForm').classList.add('hidden');
+            document.getElementById('editPostForm').classList.add('hidden');
+            document.getElementById('deletePostForm').classList.add('hidden');
         }
-        
-        // 수정 버튼 클릭 시 처리
+
+        // 수정 버튼 클릭 이벤트
         document.getElementById('editPostForm').onsubmit = function(event) {
-          event.preventDefault();
-          window.location.href = `/board/${postId}/edit`;
+            event.preventDefault(); // 기본 폼 제출 방지
+            window.location.href = `/board/${postId}/edit`;
         };
-        
-        // 삭제 버튼 클릭 시 처리
+
+        // 삭제 버튼 클릭 이벤트
         document.getElementById('deletePostForm').onsubmit = function(event) {
-          event.preventDefault();
-          fetch(`/board/${postId}/delete`, { method: 'POST' })
-            .then(response => {
-              if (response.ok) {
-                location.reload();
-              } else {
-                console.error('삭제 실패:', response.statusText);
-              }
-            });
+            event.preventDefault(); // 기본 폼 제출 방지
+            fetch(`/board/${postId}/delete`, { method: 'POST' })
+                .then(response => {
+                    if (response.ok) {
+                        // 삭제 성공 후 페이지 새로 고침
+                        location.reload();
+                    } else {
+                        console.error('삭제 실패:', response.statusText);
+                    }
+                });
         };
       });
     });
@@ -213,6 +211,7 @@
     
     // 게시글 제목 글자 수 제한 및 줄바꿈 처리
     const titleElements = document.querySelectorAll('.postCard h3');
+
     titleElements.forEach(titleElement => {
       const maxLength = 30;
       let titleText = titleElement.textContent;
@@ -228,3 +227,4 @@
 
 </body>
 </html>
+

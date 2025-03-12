@@ -6,17 +6,16 @@
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome -->
-  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js" crossorigin="anonymous"></script>
 </head>
 <body class="bg-white flex justify-center items-center min-h-screen">
-  <!-- 상단 오운완 텍스트 -->
-  <div class="absolute top-5 left-0 right-0 text-center text-4xl font-bold text-gray-800">
-    오운완
-  </div>
 
   <!-- 회원가입 박스 -->
   <div class="bg-white p-8 rounded-lg shadow-lg w-[673px] h-[700px] mt-10 flex flex-col items-center justify-center">
-    <h2 class="text-2xl font-bold text-center mb-4 text-[#38773E]">Sign Up</h2>
+    <div class="flex flex-col items-center mb-4">
+      <i class="fas fa-dumbbell text-4xl text-[#38773E] mb-2"></i>
+      <h2 class="text-2xl font-bold text-center text-[#38773E]">Sign Up</h2>
+    </div>
 
     <!-- 회원가입 폼 -->
     <form action="/signup" method="POST" class="w-full flex flex-col items-center">
@@ -64,7 +63,7 @@
         <p class="text-red-500 mt-4 text-center">{{ error }}</p>
       {% endif %}
     </form>
-    
+
     <!-- 로그인 문구 -->
     <p class="text-center mt-6 text-sm text-gray-600">
       이미 회원이신가요?
@@ -72,19 +71,22 @@
     </p>
   </div>
 
-  <!-- 하단 바 -->
-  <div class="w-full h-[50px] bg-[#38773E] flex justify-between items-center px-10 fixed bottom-0">
-    <!-- 왼쪽: 오운완 텍스트 -->
-    <div class="text-white text-lg font-bold flex items-center space-x-2">
+  <!-- 하단 고정 바 -->
+  <div class="w-full h-[50px] bg-[#38773E] flex justify-between items-center px-10 fixed bottom-0 left-0">
+    <div class="text-white text-xl font-bold flex items-center space-x-2">
       <i class="fas fa-dumbbell"></i>
       <span>오운완</span>
     </div>
-    <!-- 오른쪽: 노션, 깃허브 아이콘 -->
-    <div class="flex items-center space-x-4">
-      <!-- 노션 아이콘 (단순 링크) -->
-      <img src="assets/notion-icon.png" alt="Notion" class="w-6 h-6 cursor-pointer" id="notionIcon">
+    <div class="flex items-center space-x-6">
+      <!-- 노션 아이콘 -->
+      <a href="https://www.notion.so" target="_blank" class="relative">
+        <img src="/static/images/notion_logo.png" alt="Notion" class="w-6 h-6 cursor-pointer">
+      </a>
+
       <!-- 깃허브 아이콘 -->
-      <i class="fab fa-github text-white text-2xl cursor-pointer" id="githubIcon"></i>
+      <a href="https://github.com/craftonjungle8" target="_blank" class="relative">
+        <img src="/static/images/github_logo.png" alt="GitHub" class="w-6 h-6 cursor-pointer">
+      </a>
     </div>
   </div>
 </body>

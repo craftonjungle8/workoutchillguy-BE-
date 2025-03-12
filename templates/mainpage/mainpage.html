@@ -23,25 +23,27 @@
   </style>
 </head>
 <body class="bg-gray-100">
-  <!-- 상단 바 -->
-  <div class="w-full bg-white p-4 flex justify-between items-center border-b border-gray-300">
-    <div class="text-3xl font-bold text-gray-800">오운완</div>
-    <div class="flex space-x-6 text-sm text-gray-800">
-      <a href="/board" class="hover:text-[#38773E] transition duration-300">메이트찾기</a>
-      <a href="/mypage" class="hover:text-[#38773E] transition duration-300">마이페이지</a>
-      <a href="/logout" class="hover:text-[#38773E] transition duration-300">로그아웃</a>
+   <!-- 상단 헤더 -->
+   <div class="w-[1017px] h-[94px] bg-white p-4 flex justify-between items-center border-b border-gray-300">
+    <div class="text-3xl font-bold text-gray-800">
+        <a href="/mainpage" class="text-gray-800 hover:text-[#38773E] transition duration-300">오운완</a>
     </div>
-  </div>
+    <div class="flex space-x-6 text-sm text-gray-800">
+        <a href="/board" class="text-gray-800 hover:text-[#38773E] transition duration-300">메이트찾기</a>
+        <a href="/mypage" class="text-gray-800 hover:text-[#38773E] transition duration-300">마이페이지</a>
+        <a href="/logout" class="text-gray-800 hover:text-[#38773E] transition duration-300">로그아웃</a>
+    </div>
+</div>
 
   <div class="container mx-auto p-4">
     <h1 class="text-xl font-bold mb-4">안녕하세요, {{ nickname }}님!</h1>
-    <div class="grid grid-cols-2 gap-4">
+    <div class="flex">
       <!-- 왼쪽: 실제 달력 -->
-      <div class="bg-white p-6 rounded-lg shadow">
+      <div class="bg-white p-6 rounded-lg shadow" style="width: 644px; height: 715px;">
         <div class="flex justify-between items-center mb-4">
-          <button id="prevMonth" class="px-4 py-2 bg-green-700 text-white rounded">이전</button>
-          <h1 id="monthYear" class="text-2xl font-bold"></h1>
-          <button id="nextMonth" class="px-4 py-2 bg-green-700 text-white rounded">다음</button>
+          <button id="prevMonth" class="px-4 py-2 text-white rounded" style="background-color: #38773E;">이전</button>
+        <h1 id="monthYear" class="text-2xl font-bold"></h1>
+        <button id="nextMonth" class="px-4 py-2 text-white rounded" style="background-color: #38773E;">다음</button>
         </div>
         <div class="grid grid-cols-7 text-center font-bold">
           <div>일</div>
@@ -56,20 +58,23 @@
       </div>
 
       <!-- 오른쪽: 출석률 및 웍스아웃 차트 -->
-      <div class="flex flex-col gap-4 items-center">
-        <!-- 출석률 원형 차트 -->
-        <div class="bg-white p-4 shadow rounded-lg flex-col items-center">
-          <h2 class="text-lg font-semibold mb-2">이달의 출석률</h2>
-          <canvas id="attendanceChart" class="w-56 h-56"></canvas>
-        </div>
-        <!-- 웍스아웃 바 차트 -->
-        <div class="bg-white p-4 shadow rounded-lg items-center">
-          <h2 class="text-lg font-semibold mb-2">이달의 웍스아웃</h2>
-          <canvas id="workoutChart" class="w-100"></canvas>
-        </div>
-      </div>
+<div class="flex flex-col">
+  <!-- 출석률 원형 차트 -->
+  <div class="bg-white p-4 shadow rounded-lg flex flex-col items-center justify-center" style="width: 644px; height: 348px;">
+    <h2 class="text-lg font-semibold mb-4">이달의 출석률</h2>
+    <div class="flex items-center justify-center w-full h-full">
+      <canvas id="attendanceChart" class="w-64 h-64"></canvas>
     </div>
   </div>
+  <!-- 웍스아웃 바 차트 -->
+  <div class="bg-white p-4 shadow rounded-lg flex flex-col items-center justify-center mt-4" style="width: 644px; height: 348px;">
+    <h2 class="text-lg font-semibold mb-4">이달의 웍스아웃</h2>
+    <div class="flex items-center justify-center w-full h-full">
+      <canvas id="workoutChart" class="w-full h-64"></canvas>
+    </div>
+  </div>
+</div>
+
 
   <!-- 하단 고정 박스 -->
   <div class="w-full h-[50px] bg-[#38773E] flex justify-between items-center px-10 fixed bottom-0 left-0">
@@ -206,21 +211,21 @@
       const workoutData = await fetchWorkoutStats(year, month);
       const ctx = document.getElementById('workoutChart').getContext('2d');
       new Chart(ctx, {
-  type: 'bar',
-  data: {
-    labels: workoutData.labels || [],
-    datasets: [{
-      label: '운동 횟수',
-      data: workoutData.data || [],
-      backgroundColor: (workoutData.labels || []).map(() => '#' + Math.floor(Math.random()*16777215).toString(16))
-    }]
-  },
-  options: {
-    responsive: false,
-    maintainAspectRatio: false,
-    scales: { y: { beginAtZero: true } }
-  }
-});
+        type: 'bar',
+        data: {
+          labels: workoutData.labels || [],
+          datasets: [{
+            label: '운동 횟수',
+            data: workoutData.data || [],
+            backgroundColor: (workoutData.labels || []).map(() => '#' + Math.floor(Math.random()*16777215).toString(16))
+          }]
+        },
+        options: {
+          responsive: false,
+          maintainAspectRatio: false,
+          scales: { y: { beginAtZero: true } }
+        }
+      });
     }
 
     document.getElementById('prevMonth').addEventListener('click', async () => {

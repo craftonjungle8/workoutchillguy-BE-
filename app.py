@@ -488,7 +488,7 @@ def edit_post(post_id):
     )
 
     flash("수정이 완료되었습니다.")  # 수정 완료 메시지
-    return redirect(url_for("board_list"))  # 수정 후 게시글 목록 페이지로 리다이렉트, total_pages가 템플릿에 전달됨
+    return redirect(url_for("board_list", success=True))  # 수정 후 게시글 목록 페이지로 리다이렉트, total_pages가 템플릿에 전달됨
 
 
 # -------------------------

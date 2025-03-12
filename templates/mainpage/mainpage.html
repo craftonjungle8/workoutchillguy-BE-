@@ -7,80 +7,73 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="s flex flex-col items-center min-h-screen">
+<body class="flex flex-col items-center min-h-screen bg-gray-100">
+    <!-- 상단 바 -->
+    <div class="w-[1017px] h-[94px] bg-white p-4 flex justify-between items-center border-b border-gray-300">
+        <div class="text-3xl font-bold text-gray-800">오운완</div>
+        <div class="flex space-x-6 text-sm text-gray-800">
+            <a href="/mate-search" class="text-[#38773E] hover:text-[#2E5F31] font-semibold transition duration-300">메이트찾기</a>
+            <a href="/mypage" class="text-gray-800 hover:text-[#38773E] transition duration-300">마이페이지</a>
+            <a href="/logout" class="text-gray-800 hover:text-[#38773E] transition duration-300">로그아웃</a>
+        </div>
+    </div>
 
-  <!-- 상단 오운완 박스 -->
-  <div class="w-[1017px] h-[94px] bg-white p-4 flex justify-between items-center border-b border-gray-300">
-      <div class="text-3xl font-bold text-gray-800">오운완</div>
-      <div class="flex space-x-6 text-sm text-gray-800"> 
-          <!-- 메이트찾기, 마이페이지, 로그아웃 링크에 hover 효과 추가 -->
-          <a href="/mate-search" class="text-[#38773E] hover:text-[#2E5F31] font-semibold transition duration-300">메이트찾기</a>
-          <a href="/mypage" class="text-gray-800 hover:text-[#38773E] transition duration-300">마이페이지</a>
-          <a href="#" id="logoutBtn" class="text-gray-800 hover:text-[#38773E] transition duration-300">로그아웃</a>
-      </div>
-  </div>
-      
-      <p id="message" class="mt-4 text-center text-red-500 hidden"></p>
-  </div>
-
-  <!-- 최하단 고정 박스 -->
-  <div class="w-full h-[50px] bg-[#38773E] flex justify-between items-center px-10 fixed bottom-0 left-0">
-      <!-- 오운완 아이콘 -->
-      <div class="text-white text-xl font-bold flex items-center space-x-2">
-          <i class="fas fa-dumbbell"></i> <!-- 오운완 아이콘 -->
-      </div>
-
-      <!-- 우측 노션과 깃허브 아이콘 -->
-      <div class="flex items-center space-x-6">
-          <!-- 노션 아이콘 -->
-          <div class="relative">
-              <img src="../../static/images/notion_logo.png" alt="Notion" class="w-8 h-8 cursor-pointer" id="notionIcon">
-              <div id="notionDropdown" class="absolute right-0 hidden bg-white text-black p-2 mt-2 rounded-lg shadow-lg">
-                  <a href="https://www.notion.so" class="block px-4 py-2">Notion</a>
-              </div>
-          </div>
-
-          <!-- 깃허브 아이콘 -->
-          <div class="relative">
-              <i class="fab fa-github text-white text-3xl cursor-pointer" id="githubIcon"></i>
-              <div id="githubDropdown" class="absolute right-0 hidden bg-white text-black p-2 mt-2 rounded-lg shadow-lg">
-                  <a href="https://github.com" class="block px-4 py-2">GitHub</a>
-              </div>
-          </div>
-      </div>
-  </div>
-
-  <body class="bg-gray-100">
+    <!-- 메인 컨텐츠 -->
     <div class="container mx-auto p-4 w-[1017px]">
+        <h1 class="text-xl font-bold mb-4">안녕하세요, {{ nickname }} ({{ email }}) 님!</h1>
+        
+        <!-- 예: 달력 / 출석률 / 웍스아웃 그래프 등 -->
         <div class="grid grid-cols-2 gap-4 h-screen">
             <!-- 왼쪽: 달력 -->
             <div class="bg-white p-4 shadow rounded-lg flex-col h-4/5">
-                <h2 class="text-lg font-semibold mb-2 text-center">00님의 오운완 캘린더</h2>
+                <h2 class="text-lg font-semibold mb-2 text-center">{{ nickname }}님의 오운완 캘린더</h2>
                 <div id="calendar" class="grid grid-cols-7 gap-1 text-center flex-grow">
-                    <!-- 동적 달력 데이터 삽입 예정 -->
+                    <!-- 달력 코드... -->
                 </div>
             </div>
             
-            <!-- 오른쪽: 출석률과 웍스아웃 그래프 -->
-            <div class="flex flex-col gap-4 items-center ">
+            <!-- 오른쪽: 출석률 / 웍스아웃 차트 -->
+            <div class="flex flex-col gap-4 items-center">
                 <!-- 출석률 원 그래프 -->
                 <div class="bg-white p-4 shadow rounded-lg flex-col items-center h-4/5">
-                <div class="bg-white p-4 shadow rounded-lg  items-center mt-0">
-                    <h2 class="text-lg font-semibold mb-2">00님의 이달의 출석률</h2>
+                    <h2 class="text-lg font-semibold mb-2">이달의 출석률</h2>
                     <canvas id="attendanceChart" class="w-56 h-56"></canvas>
                 </div>
-                
                 <!-- 웍스아웃 막대 그래프 -->
-                <div class="bg-white p-4 shadow rounded-lg items-center mt-40">
-                    <h2 class="text-lg font-semibold mb-2">00님의 TOP 웍스아웃</h2>
+                <div class="bg-white p-4 shadow rounded-lg items-center">
+                    <h2 class="text-lg font-semibold mb-2">TOP 웍스아웃</h2>
                     <canvas id="workoutChart" class="w-100"></canvas>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- 하단 바 -->
+    <div class="w-full h-[50px] bg-[#38773E] flex justify-between items-center px-10 fixed bottom-0 left-0">
+        <div class="text-white text-xl font-bold flex items-center space-x-2">
+            <i class="fas fa-dumbbell"></i>
+            <span>오운완</span>
+        </div>
+        <div class="flex items-center space-x-6">
+            <div class="relative">
+                <img
+                    src="../../static/images/notion_logo.png"
+                    alt="Notion"
+                    class="w-8 h-8 cursor-pointer"
+                    id="notionIcon"
+                >
+            </div>
+            <div class="relative">
+                <i
+                    class="fab fa-github text-white text-3xl cursor-pointer"
+                    id="githubIcon"
+                ></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- 차트 초기화 스크립트 -->
     <script>
-        // 출석률 원 그래프 데이터
         const attendanceCtx = document.getElementById('attendanceChart').getContext('2d');
         new Chart(attendanceCtx, {
             type: 'pie',
@@ -97,7 +90,6 @@
             }
         });
 
-        // 웍스아웃 막대 그래프 데이터
         const workoutCtx = document.getElementById('workoutChart').getContext('2d');
         new Chart(workoutCtx, {
             type: 'bar',
@@ -105,7 +97,8 @@
                 labels: ['데드리프트', '스쿼트', '레그프레스', '벤치프레스'],
                 datasets: [{
                     data: [13, 11, 9, 4],
-                    backgroundColor: ['#fbbf24', '#38bdf8', '#a78bfa', '#facc15'],                }]
+                    backgroundColor: ['#fbbf24', '#38bdf8', '#a78bfa', '#facc15'],
+                }]
             },
             options: {
                 responsive: false,

@@ -2,11 +2,11 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>회원가입 페이지</title>
-  <!-- Tailwind CSS CDN -->
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script> <!-- FontAwesome 아이콘 -->
+  <!-- FontAwesome -->
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 </head>
 <body class="bg-white flex justify-center items-center min-h-screen">
   <!-- 상단 오운완 텍스트 -->
@@ -17,27 +17,57 @@
   <!-- 회원가입 박스 -->
   <div class="bg-white p-8 rounded-lg shadow-lg w-[673px] h-[700px] mt-10 flex flex-col items-center justify-center">
     <h2 class="text-2xl font-bold text-center mb-4 text-[#38773E]">Sign Up</h2>
-    <form id="signupForm" class="w-full flex flex-col items-center">
-      <!-- 닉네임 입력란 -->
+
+    <!-- 회원가입 폼 -->
+    <form action="/signup" method="POST" class="w-full flex flex-col items-center">
+      <!-- 닉네임 입력 -->
       <div class="mb-4">
-        <input type="text" id="nickname" name="nickname" class="w-[360px] h-[55px] p-2 border border-gray-300 bg-gray-200 rounded-lg mt-1" placeholder="Nickname" required>
+        <input
+          type="text"
+          name="nickname"
+          class="w-[360px] h-[55px] p-2 border border-gray-300 bg-gray-200 rounded-lg mt-1"
+          placeholder="Nickname"
+          required
+        >
       </div>
-      <!-- 이메일 입력란 -->
+      <!-- 이메일 입력 -->
       <div class="mb-4">
-        <input type="email" id="email" name="email" class="w-[360px] h-[55px] p-2 border border-gray-300 bg-gray-200 rounded-lg mt-1" placeholder="Email" required>
+        <input
+          type="email"
+          name="email"
+          class="w-[360px] h-[55px] p-2 border border-gray-300 bg-gray-200 rounded-lg mt-1"
+          placeholder="Email"
+          required
+        >
       </div>
-      <!-- 비밀번호 입력란 -->
+      <!-- 비밀번호 입력 -->
       <div class="mb-4">
-        <input type="password" id="password" name="password" class="w-[360px] h-[55px] p-2 border border-gray-300 bg-gray-200 rounded-lg mt-1" placeholder="Password" required>
+        <input
+          type="password"
+          name="password"
+          class="w-[360px] h-[55px] p-2 border border-gray-300 bg-gray-200 rounded-lg mt-1"
+          placeholder="Password"
+          required
+        >
       </div>
       <!-- 회원가입 버튼 -->
-      <button type="submit" class="w-[360px] h-[55px] py-2 text-white font-semibold rounded-lg hover:bg-opacity-80 transition duration-200" style="background-color: #38773E;">회원가입</button>
-      <p id="error-message" class="text-red-500 mt-4 text-center hidden">회원가입 중 오류가 발생했습니다.</p>
+      <button
+        type="submit"
+        class="w-[360px] h-[55px] py-2 text-white font-semibold rounded-lg hover:bg-opacity-80 transition duration-200"
+        style="background-color: #38773E;"
+      >
+        회원가입
+      </button>
+
+      <!-- 에러 메시지 표시 -->
+      {% if error %}
+        <p class="text-red-500 mt-4 text-center">{{ error }}</p>
+      {% endif %}
     </form>
     
     <!-- 로그인 문구 -->
     <p class="text-center mt-6 text-sm text-gray-600">
-      이미 회원이신가요? 
+      이미 회원이신가요?
       <a href="/login" class="text-blue-500 hover:underline">로그인하기</a>
     </p>
   </div>
@@ -49,48 +79,13 @@
       <i class="fas fa-dumbbell"></i>
       <span>오운완</span>
     </div>
-
     <!-- 오른쪽: 노션, 깃허브 아이콘 -->
     <div class="flex items-center space-x-4">
-      <!-- 노션 아이콘 -->
+      <!-- 노션 아이콘 (단순 링크) -->
       <img src="assets/notion-icon.png" alt="Notion" class="w-6 h-6 cursor-pointer" id="notionIcon">
       <!-- 깃허브 아이콘 -->
       <i class="fab fa-github text-white text-2xl cursor-pointer" id="githubIcon"></i>
     </div>
   </div>
-
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script>
-    $(document).ready(function() {
-      $('#signupForm').submit(function(e) {
-        e.preventDefault(); // 폼 제출 막기
-
-        var nickname = $('#nickname').val();
-        var email = $('#email').val();
-        var password = $('#password').val();
-
-        // Ajax로 회원가입 요청
-        $.ajax({
-          url: '/signup',
-          type: 'POST',
-          data: {
-            nickname: nickname,
-            email: email,
-            password: password
-          },
-          success: function(response) {
-            if (response.success) {
-              window.location.href = '/login';
-            } else {
-              $('#error-message').show();
-            }
-          },
-          error: function() {
-            $('#error-message').show();
-          }
-        });
-      });
-    });
-  </script>
 </body>
 </html>

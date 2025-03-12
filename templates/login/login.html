@@ -1,16 +1,15 @@
-
-templates\login\login.html
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
   <title>로그인 페이지</title>
-  <!-- Tailwind CSS CDN -->
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js" crossorigin="anonymous"></script>
 </head>
 <body class="bg-white flex justify-center items-center min-h-screen">
-  <!-- 상단 오운완 텍스트 -->
+  <!-- 상단 텍스트 -->
   <div class="absolute top-5 left-0 right-0 text-center text-4xl font-bold text-gray-800">
     오운완
   </div>
@@ -18,97 +17,75 @@ templates\login\login.html
   <!-- 로그인 박스 -->
   <div class="bg-white p-8 rounded-lg shadow-lg w-[673px] h-[734px] mt-10 flex flex-col items-center justify-center">
     <h2 class="text-2xl font-bold text-center mb-4 text-[#38773E]">Log In</h2>
-    <form id="loginForm" class="w-full flex flex-col items-center">
-      <!-- 이메일 입력란 -->
+    
+    <!-- 로그인 폼 -->
+    <form action="/login" method="POST" class="w-full flex flex-col items-center">
+      <!-- 이메일 -->
       <div class="mb-4">
-        <input type="email" id="username" name="username" class="w-[363.34px] h-[59.31px] p-2 border border-gray-300 bg-gray-200 rounded-lg mt-1 text-left" placeholder="Email" required>
+        <input
+          type="email"
+          name="email"
+          class="w-[363.34px] h-[59.31px] p-2 border border-gray-300 bg-gray-200 rounded-lg mt-1"
+          placeholder="Email"
+          required
+        >
       </div>
-      <!-- 비밀번호 입력란 -->
+      <!-- 비밀번호 -->
       <div class="mb-4">
-        <input type="password" id="password" name="password" class="w-[363.34px] h-[59.31px] p-2 border border-gray-300 bg-gray-200 rounded-lg mt-1 text-left" placeholder="Password" required>
+        <input
+          type="password"
+          name="password"
+          class="w-[363.34px] h-[59.31px] p-2 border border-gray-300 bg-gray-200 rounded-lg mt-1"
+          placeholder="Password"
+          required
+        >
       </div>
       <!-- 로그인 버튼 -->
-      <button type="submit" class="w-[363.34px] h-[59.31px] py-2 text-white font-semibold rounded-lg hover:bg-opacity-80 transition duration-200 text-center" style="background-color: #38773E;">로그인</button>
-      <p id="error-message" class="text-red-500 mt-4 text-center hidden">잘못된 이메일 또는 비밀번호입니다.</p>
+      <button
+        type="submit"
+        class="w-[363.34px] h-[59.31px] py-2 text-white font-semibold rounded-lg hover:bg-opacity-80 transition duration-200"
+        style="background-color: #38773E;"
+      >
+        로그인
+      </button>
+
+      <!-- 에러 메시지 표시 -->
+      {% if error %}
+        <p class="text-red-500 mt-4 text-center">{{ error }}</p>
+      {% endif %}
     </form>
-    
+
     <!-- 회원가입 문구 -->
     <p class="text-center mt-6 text-sm text-gray-600">
-      아직 회원이 아니신가요? 
+      아직 회원이 아니신가요?
       <a href="/signup" class="text-blue-500 hover:underline">회원가입하기</a>
     </p>
   </div>
 
-  <!-- 최하단 고정 바 (수정된 부분) -->
+  <!-- 하단 고정 바 -->
   <div class="w-full h-[50px] bg-[#38773E] flex justify-between items-center px-10 fixed bottom-0 left-0">
-    <!-- 오운완 아이콘 -->
     <div class="text-white text-xl font-bold flex items-center space-x-2">
-      <i class="fas fa-dumbbell"></i> <!-- 오운완 아이콘 -->
+      <i class="fas fa-dumbbell"></i>
       <span>오운완</span>
     </div>
-
-    <!-- 우측 노션과 깃허브 아이콘 -->
     <div class="flex items-center space-x-6">
       <!-- 노션 아이콘 -->
       <div class="relative">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a1/Notion_logo.svg" alt="Notion" class="w-8 h-8 cursor-pointer" id="notionIcon">
-        <div id="notionDropdown" class="absolute right-0 hidden bg-white text-black p-2 mt-2 rounded-lg shadow-lg">
-          <a href="https://www.notion.so" class="block px-4 py-2">Notion</a>
-        </div>
+        <img
+          src="https://upload.wikimedia.org/wikipedia/commons/a/a1/Notion_logo.svg"
+          alt="Notion"
+          class="w-8 h-8 cursor-pointer"
+          id="notionIcon"
+        >
       </div>
-
       <!-- 깃허브 아이콘 -->
       <div class="relative">
-        <i class="fab fa-github text-white text-3xl cursor-pointer" id="githubIcon"></i>
-        <div id="githubDropdown" class="absolute right-0 hidden bg-white text-black p-2 mt-2 rounded-lg shadow-lg">
-          <a href="https://github.com" class="block px-4 py-2">GitHub</a>
-        </div>
+        <i
+          class="fab fa-github text-white text-3xl cursor-pointer"
+          id="githubIcon"
+        ></i>
       </div>
     </div>
   </div>
-
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script>
-  $(document).ready(function() {
-      $('#loginForm').submit(function(e) {
-          e.preventDefault(); // 폼 제출 막기
-
-          var email = $('#email').val(); // username을 email로 변경
-          var password = $('#password').val();
-
-          // Ajax로 로그인 요청
-          $.ajax({
-              url: '/login', // 백엔드 URL
-              type: 'POST',
-              contentType: 'application/json',  // Content-Type을 application/json으로 설정
-              data: JSON.stringify({  // 데이터는 JSON 형식으로 변환
-                  email: email, // email 변수 사용
-                  password: password
-              }),
-              success: function(response) {
-                  // 로그인 성공 시 처리
-                  if (response.success) {
-                      window.location.href = response.redirect; // mainpage로 이동
-                  } else {
-                      $('#error-message').show(); // 에러 메시지 표시
-                  }
-              },
-              error: function() {
-                  $('#error-message').show(); // 에러 발생 시 메시지 표시
-              }
-          });
-      });
-
-      // 노션 아이콘 클릭 시 드롭다운 보이기
-      $('#notionIcon').click(function() {
-          $('#notionDropdown').toggleClass('hidden');
-      });
-
-      // 깃허브 아이콘 클릭 시 드롭다운 보이기
-      $('#githubIcon').click(function() {
-          $('#githubDropdown').toggleClass('hidden');
-      });
-  });
-  </script>
 </body>
 </html>

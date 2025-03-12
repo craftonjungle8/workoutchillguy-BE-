@@ -1,97 +1,74 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, render_template, redirect, url_for, make_response
 from flask_pymongo import PyMongo
+import bcrypt
 import jwt
 import datetime
-import bcrypt
-from functools import wraps
 from bson import ObjectId
 
 app = Flask(__name__)
-
-# 환경 변수 설정 (SECRET_KEY 및 MongoDB 연결)
-app.config["SECRET_KEY"] = "your_secret_key"
+app.config["SECRET_KEY"] = "your_secret_key"          # 실제 환경에서는 안전하게 보관
 app.config["MONGO_URI"] = "mongodb://localhost:27017/1weekmini"
 
 mongo = PyMongo(app)
 users_collection = mongo.db.users
-boards_collection = mongo.db.boards
+boards_collection = mongo.db.boards  # 게시글 저장용 컬렉션
 
-# 루트 경로 -> templates/login/login.html 렌더링
-@app.route("/")
-def home():
-    return render_template("login/login.html")
-
-# ===================================
-# JWT 토큰 검증 데코레이터
-# ===================================
-def token_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        token = request.headers.get("x-access-token")
-        if not token:
-            return jsonify({"message": "토큰이 없습니다!"}), 401
-
-        try:
-            data = jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])
-            current_user = users_collection.find_one({"_id": ObjectId(data["user_id"])})
-            if not current_user:
-                return jsonify({"message": "유효하지 않은 사용자입니다!"}), 401
-        except jwt.ExpiredSignatureError:
-            return jsonify({"message": "토큰이 만료되었습니다!"}), 401
-        except jwt.InvalidTokenError:
-            return jsonify({"message": "유효하지 않은 토큰입니다!"}), 401
-
-        return f(current_user, *args, **kwargs)
-    return decorated
-
-# ===================================
-# 회원가입 페이지 렌더링 (GET)
-# ===================================
+# -------------------------
+# 회원가입 페이지 (GET)
+# -------------------------
 @app.route("/signup", methods=["GET"])
 def signup_page():
-    return render_template("signup/signup.html")  # 회원가입 페이지 (예: templates/signup/signup.html)
+    return render_template("signup/signup.html")
 
-# ===================================
-# 회원가입 API (POST)
-# ===================================
+# -------------------------
+# 회원가입 처리 (POST)
+# -------------------------
 @app.route("/signup", methods=["POST"])
 def signup():
-    data = request.json
-    nickname = data.get("nickname")
-    email = data.get("email")
-    password = data.get("password")
+    nickname = request.form.get("nickname")
+    email = request.form.get("email")
+    password = request.form.get("password")
 
-    # 이미 가입된 이메일 확인
+    # 이메일 중복 확인
     if users_collection.find_one({"email": email}):
-        return jsonify({"success": False, "message": "이미 가입된 이메일입니다."}), 400
+        return render_template("signup/signup.html", error="이미 가입된 이메일입니다.")
 
+    # 비밀번호 해싱
     hashed_pw = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
 
-    user_id = users_collection.insert_one({
+    # DB에 저장
+    users_collection.insert_one({
         "nickname": nickname,
         "email": email,
-        "password": hashed_pw,
-    }).inserted_id
+        "password": hashed_pw
+    })
 
-    return jsonify({"success": True, "message": "회원가입 성공!", "user_id": str(user_id)}), 201
+    # 회원가입 완료 후 → 로그인 페이지로 리다이렉트
+    return redirect(url_for("login_page"))
 
-# ===================================
-# 로그인 API (JWT 발급)
-# ===================================
+# -------------------------
+# 로그인 페이지 (GET)
+# -------------------------
+@app.route("/login", methods=["GET"])
+def login_page():
+    return render_template("login/login.html")
+
+# -------------------------
+# 로그인 처리 (POST)
+# -------------------------
 @app.route("/login", methods=["POST"])
 def login():
-    data = request.json
-    email = data.get("email")
-    password = data.get("password")
+    email = request.form.get("email")
+    password = request.form.get("password")
 
     user = users_collection.find_one({"email": email})
     if not user:
-        return jsonify({"success": False, "message": "이메일 또는 비밀번호가 잘못되었습니다."}), 401
+        return render_template("login/login.html", error="이메일/비밀번호가 잘못되었습니다.")
 
     if not bcrypt.checkpw(password.encode("utf-8"), user["password"]):
-        return jsonify({"success": False, "message": "이메일 또는 비밀번호가 잘못되었습니다."}), 401
+        return render_template("login/login.html", error="이메일/비밀번호가 잘못되었습니다.")
 
-    # JWT 토큰 발급 (유효기간 1시간)
+    # JWT 생성 (1시간 유효)
     token = jwt.encode(
         {
             "user_id": str(user["_id"]),
@@ -101,51 +78,190 @@ def login():
         algorithm="HS256"
     )
 
-    # 로그인 성공 시 mainpage로 이동하도록 설정
-    return jsonify({
-        "success": True,
-        "token": token,
-        "redirect": "/mainpage"
-    }), 200
+    # 쿠키에 JWT를 심어서 반환
+    resp = make_response(redirect(url_for("mainpage")))
+    resp.set_cookie("jwt_token", token, httponly=True, samesite="Strict")
+    return resp
 
-# ===================================
-# 게시글 작성 API (JWT 인증 필요)
-# ===================================
-@app.route("/board", methods=["POST"])
-@token_required
-def create_board(current_user):
-    data = request.json
-    board_id = boards_collection.insert_one({
-        "title": data["title"],
-        "content": data["content"],
-        "user_id": current_user["_id"],
-        "created_at": datetime.datetime.utcnow()
-    }).inserted_id
-
-    return jsonify({"message": "게시글 등록 완료", "board_id": str(board_id)})
-
-# ===================================
-# 사용자 게시글 조회 API (JWT 인증 필요)
-# ===================================
-@app.route("/board", methods=["GET"])
-@token_required
-def get_boards(current_user):
-    user_boards = boards_collection.find({"user_id": current_user["_id"]})
-    result = [{"title": board["title"], "content": board["content"]} for board in user_boards]
-    return jsonify(result)
-
-# ===================================
-# mainpage (로그인한 유저만 접근 가능)
-# ===================================
+# -------------------------
+# 메인페이지 (GET)
+# -------------------------
 @app.route("/mainpage", methods=["GET"])
-@token_required
-def mainpage(current_user):
-    # 토큰이 유효하면 mainpage.html 렌더링
-    # 필요하다면 current_user['nickname'] 등 정보를 템플릿에 넘길 수 있음
-    return render_template("mainpage/mainpage.html")
+def mainpage():
+    token = request.cookies.get("jwt_token")
+    if not token:
+        # 토큰이 없으면 로그인 페이지로
+        return redirect(url_for("login_page"))
 
-# ===================================
-# 서버 실행
-# ===================================
-if __name__ == '__main__':
-    app.run('0.0.0.0', port=5001, debug=True)
+    try:
+        data = jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])
+        user_id = data["user_id"]
+    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+        return redirect(url_for("login_page"))
+
+    # DB에서 사용자 정보 가져오기
+    current_user = users_collection.find_one({"_id": ObjectId(user_id)})
+    if not current_user:
+        return redirect(url_for("login_page"))
+
+    # jinja2 템플릿 렌더링
+    # mainpage.html 안에서 {{ nickname }}, {{ email }} 사용 가능
+    return render_template(
+        "mainpage/mainpage.html",
+        nickname=current_user.get("nickname", ""),
+        email=current_user["email"]
+    )
+
+# -------------------------
+# 게시판 목록 페이지 (GET)
+# -------------------------
+@app.route("/board", methods=["GET"])
+def board_list():
+    token = request.cookies.get("jwt_token")
+    if not token:
+        return redirect(url_for("login_page"))
+
+    try:
+        data = jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])
+        user_id = data["user_id"]
+    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+        return redirect(url_for("login_page"))
+
+    current_user = users_collection.find_one({"_id": ObjectId(user_id)})
+    if not current_user:
+        return redirect(url_for("login_page"))
+
+    # DB에서 게시글 목록 조회 (최신순 정렬 예시)
+    all_posts = boards_collection.find().sort("created_at", -1)
+    post_list = []
+    for post in all_posts:
+        post_list.append({
+            "id": str(post["_id"]),
+            "title": post["title"],
+            "content": post["content"],
+            "created_at": post["created_at"].strftime("%Y-%m-%d %H:%M") if "created_at" in post else ""
+        })
+
+    # board/board.html 템플릿에 posts 전달
+    return render_template(
+        "board/board.html",
+        nickname=current_user.get("nickname", ""),
+        email=current_user["email"],
+        posts=post_list
+    )
+
+# -------------------------
+# 특정 게시글 상세 페이지 (GET)
+# -------------------------
+@app.route("/board/<post_id>", methods=["GET"])
+def board_detail(post_id):
+    token = request.cookies.get("jwt_token")
+    if not token:
+        return redirect(url_for("login_page"))
+
+    try:
+        data = jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])
+        user_id = data["user_id"]
+    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+        return redirect(url_for("login_page"))
+
+    current_user = users_collection.find_one({"_id": ObjectId(user_id)})
+    if not current_user:
+        return redirect(url_for("login_page"))
+
+    # DB에서 해당 게시글 찾기
+    post_doc = boards_collection.find_one({"_id": ObjectId(post_id)})
+    if not post_doc:
+        # 없는 게시글이면 /board 로 이동
+        return redirect(url_for("board_list"))
+
+    # jinja2에 넘길 데이터 구성
+    post_data = {
+        "id": str(post_doc["_id"]),
+        "title": post_doc["title"],
+        "content": post_doc["content"],
+        "created_at": post_doc["created_at"].strftime("%Y-%m-%d %H:%M") if "created_at" in post_doc else "",
+    }
+
+    # board/posting.html 템플릿에 post 전달
+    return render_template(
+        "board/posting.html",
+        nickname=current_user.get("nickname", ""),
+        email=current_user["email"],
+        post=post_data
+    )
+
+# -------------------------
+# 로그아웃 (쿠키 제거)
+# -------------------------
+@app.route("/logout", methods=["GET"])
+def logout():
+    resp = make_response(redirect(url_for("login_page")))
+    resp.set_cookie("jwt_token", "", expires=0)
+    return resp
+
+# ---------------------------------
+# 글 작성 폼 페이지 (GET)
+# ---------------------------------
+@app.route("/board/new", methods=["GET"])
+def new_post_page():
+    # JWT 쿠키 확인 (로그인 여부)
+    token = request.cookies.get("jwt_token")
+    if not token:
+        return redirect(url_for("login_page"))
+
+    try:
+        data = jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])
+        user_id = data["user_id"]
+    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+        return redirect(url_for("login_page"))
+
+    current_user = users_collection.find_one({"_id": ObjectId(user_id)})
+    if not current_user:
+        return redirect(url_for("login_page"))
+
+    # jinja2 템플릿: posting.html 렌더
+    # 필요하다면 nickname, email 넘길 수도 있음
+    return render_template(
+        "board/posting.html",
+        nickname=current_user.get("nickname", ""),
+        email=current_user["email"]
+    )
+
+# ---------------------------------
+# 글 작성 처리 (POST)
+# ---------------------------------
+@app.route("/board/new", methods=["POST"])
+def create_post():
+    token = request.cookies.get("jwt_token")
+    if not token:
+        return redirect(url_for("login_page"))
+
+    try:
+        data = jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])
+        user_id = data["user_id"]
+    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+        return redirect(url_for("login_page"))
+
+    current_user = users_collection.find_one({"_id": ObjectId(user_id)})
+    if not current_user:
+        return redirect(url_for("login_page"))
+
+    # 폼 데이터 받기
+    title = request.form.get("title")
+    content = request.form.get("content")
+
+    # DB에 새 게시글 저장
+    new_post = {
+        "title": title,
+        "content": content,
+        "created_at": datetime.datetime.utcnow(),
+        "user_id": current_user["_id"]
+    }
+    boards_collection.insert_one(new_post)
+
+    # 글 작성 완료 → 게시판 목록 페이지로 이동
+    return redirect(url_for("board_list"))
+
+if __name__ == "__main__":
+    app.run("0.0.0.0", port=5001, debug=True)

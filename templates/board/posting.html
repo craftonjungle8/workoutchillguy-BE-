@@ -21,37 +21,57 @@
     <div class="w-[1017px] h-[94px] bg-white p-4 flex justify-between items-center border-b border-gray-300">
         <div class="text-3xl font-bold text-gray-800">오운완</div>
         <div class="flex space-x-6 text-sm text-gray-800"> 
-            <!-- 메이트찾기, 마이페이지, 로그아웃 링크에 hover 효과 추가 -->
+            <!-- 메이트찾기, 마이페이지, 로그아웃 링크 -->
             <a href="/mate-search" class="text-[#38773E] hover:text-[#2E5F31] font-semibold transition duration-300">메이트찾기</a>
             <a href="/mypage" class="text-gray-800 hover:text-[#38773E] transition duration-300">마이페이지</a>
-            <a href="#" id="logoutBtn" class="text-gray-800 hover:text-[#38773E] transition duration-300">로그아웃</a>
+            <a href="/logout" class="text-gray-800 hover:text-[#38773E] transition duration-300" id="logoutBtn">로그아웃</a>
         </div>
     </div>
 
+    <!-- 글 작성 폼 -->
     <div class="bg-gray-100 p-8 rounded-xl shadow-lg w-[600px] mt-10">
-        <h2 class="text-2xl font-bold mb-4 text-center text">게시글 작성</h2>
+        <h2 class="text-2xl font-bold mb-4 text-center">게시글 작성</h2>
         
-        <form id="postForm" class="flex flex-col items-center">
-            <input type="text" id="title" class="w-full p-3 border border-green-700 rounded-xl mb-10" required placeholder="제목을 입력해 주세요">
-            <textarea id="content" class="w-full p-3 border border-green-700 rounded-xl mb-4 h-80" required placeholder="내용을 입력해 주세요"></textarea>
+        <!-- method="POST" action="/board/new" -->
+        <form method="POST" action="/board/new" class="flex flex-col items-center">
+            <!-- 제목 -->
+            <input 
+                type="text" 
+                name="title" 
+                class="w-full p-3 border border-green-700 rounded-xl mb-10" 
+                required 
+                placeholder="제목을 입력해 주세요">
 
-            <button type="submit" class="w-1/4 bg-[#38773E] text-white p-3 rounded-xl hover:bg-green-700">등록</button>
+            <!-- 내용 -->
+            <textarea 
+                name="content" 
+                class="w-full p-3 border border-green-700 rounded-xl mb-4 h-80" 
+                required 
+                placeholder="내용을 입력해 주세요"></textarea>
+
+            <!-- 등록 버튼 -->
+            <button 
+                type="submit" 
+                class="w-1/4 bg-[#38773E] text-white p-3 rounded-xl hover:bg-green-700"
+            >
+                등록
+            </button>
         </form>
         
+        <!-- 에러/성공 메시지 표시가 필요하다면, jinja2로 전달하거나 JS로 처리 가능 -->
         <p id="message" class="mt-4 text-center text-red-500 hidden"></p>
     </div>
 
-    <!-- 최하단 고정 박스 -->
+    <!-- 하단 고정 박스 -->
     <div class="w-full h-[50px] bg-[#38773E] flex justify-between items-center px-10 fixed bottom-0 left-0">
         <!-- 오운완 아이콘 -->
         <div class="text-white text-xl font-bold flex items-center space-x-2">
-            <i class="fas fa-dumbbell"></i> <!-- 오운완 아이콘 -->
+            <i class="fas fa-dumbbell"></i>
             <span>오운완</span>
         </div>
 
-        <!-- 우측 노션과 깃허브 아이콘 -->
+        <!-- 우측 노션, 깃허브 아이콘 -->
         <div class="flex items-center space-x-6">
-            <!-- 노션 아이콘 -->
             <div class="relative">
                 <img src="../../static/images/notion_logo.png" alt="Notion" class="w-8 h-8 cursor-pointer" id="notionIcon">
                 <div id="notionDropdown" class="absolute right-0 hidden bg-white text-black p-2 mt-2 rounded-lg shadow-lg">
@@ -59,7 +79,6 @@
                 </div>
             </div>
 
-            <!-- 깃허브 아이콘 -->
             <div class="relative">
                 <i class="fab fa-github text-white text-3xl cursor-pointer" id="githubIcon"></i>
                 <div id="githubDropdown" class="absolute right-0 hidden bg-white text-black p-2 mt-2 rounded-lg shadow-lg">
@@ -70,54 +89,19 @@
     </div>
 
     <script>
-        document.getElementById("postForm").addEventListener("submit", async (e) => {
-            e.preventDefault();
-            
-            const title = document.getElementById("title").value;
-            const content = document.getElementById("content").value;
-
-            const response = await fetch("http://127.0.0.1:5000/api/articles", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ title, content })
-            });
-
-            const result = await response.json();
-            const messageElem = document.getElementById("message");
-
-            if (response.ok) {
-                messageElem.textContent = "글 작성 완료!";
-                messageElem.classList.replace("text-red-500", "text-green-500");
-            } else {
-                messageElem.textContent = result.error || "서버 오류!";
-            }
-            messageElem.classList.remove("hidden");
-        });
-
-        // 노션 아이콘 클릭 시 드롭다운 보이기
+        // 노션 아이콘 클릭 시 드롭다운 토글
         document.getElementById("notionIcon").addEventListener("click", function() {
-            const dropdown = document.getElementById("notionDropdown");
-            dropdown.classList.toggle("hidden");
+            document.getElementById("notionDropdown").classList.toggle("hidden");
         });
-
-        // 깃허브 아이콘 클릭 시 드롭다운 보이기
+        // 깃허브 아이콘 클릭 시 드롭다운 토글
         document.getElementById("githubIcon").addEventListener("click", function() {
-            const dropdown = document.getElementById("githubDropdown");
-            dropdown.classList.toggle("hidden");
+            document.getElementById("githubDropdown").classList.toggle("hidden");
         });
 
-        // 로그아웃 버튼 클릭 시 엑세스 토큰 삭제 및 로그인 페이지로 리다이렉트
+        // 로그아웃 버튼 (단순히 /logout으로 이동해도 되지만, JS로 처리 예시)
         document.getElementById("logoutBtn").addEventListener("click", function(e) {
-            e.preventDefault();
-            
-            // 로컬 스토리지에서 JWT 엑세스 토큰 삭제
-            localStorage.removeItem('access_token');
-            
-            // 쿠키에서 토큰 삭제 (필요시 사용)
-            // document.cookie = 'access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-            
-            // 로그아웃 후 로그인 페이지로 리다이렉트
-            window.location.href = '/login'; // 로그인 페이지로 이동
+            // 필요 시 localStorage 토큰 제거 등 로직...
+            // 그 후 /logout으로 이동
         });
     </script>
 </body>

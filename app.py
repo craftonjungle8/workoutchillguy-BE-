@@ -13,6 +13,7 @@ mongo = PyMongo(app)
 users_collection = mongo.db.users
 boards_collection = mongo.db.boards      # 게시판 글
 exercises_collection = mongo.db.exercises  # 운동일기
+comments_collection = mongo.db.comments    # 댓글
 
 @app.route("/")
 def home():
@@ -509,6 +510,47 @@ def delete_post(post_id):
     boards_collection.delete_one({"_id": ObjectId(post_id)})
 
     return redirect(url_for("board_list"))
+
+
+
+# 댓글 조회 API (특정 게시글의 댓글을 가져옴)
+@app.route("/api/comments/<post_id>", methods=["GET"])
+def get_comments(post_id):
+    # 게시글 ID에 해당하는 댓글을 작성 시간 오름차순으로 정렬
+    comments = list(comments_collection.find({"post_id": post_id}).sort("created_at", 1))
+    comment_list = []
+    for comment in comments:
+        comment_list.append({
+            "id": str(comment["_id"]),
+            "user": comment.get("user", "익명"),
+            "content": comment.get("content", ""),
+            "created_at": (comment["created_at"] + datetime.timedelta(hours=9)).strftime("%Y-%m-%d %H:%M")
+                          if "created_at" in comment else ""
+        })
+    return jsonify(comment_list)
+
+# 댓글 작성 API (POST)
+@app.route("/api/comments/<post_id>", methods=["POST"])
+def post_comment(post_id):
+    current_user = get_current_user()
+    if not current_user:
+        return jsonify({"error": "로그인이 필요합니다."}), 401
+
+    data = request.get_json()
+    content = data.get("content", "").strip()
+    if not content:
+         return jsonify({"error": "댓글 내용을 입력해주세요."}), 400
+
+    new_comment = {
+         "post_id": post_id,
+         "user": current_user.get("nickname", "익명"),
+         "content": content,
+         "created_at": datetime.datetime.utcnow()
+    }
+    comments_collection.insert_one(new_comment)
+    return jsonify({"message": "댓글이 추가되었습니다."}), 201
+
+
 
 if __name__ == "__main__":
     app.run("0.0.0.0", port=5001, debug=True)

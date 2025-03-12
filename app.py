@@ -140,7 +140,7 @@ def mypage():
             "id": str(p["_id"]),
             "title": p["title"],
             "content": p["content"],
-            "created_at": p["created_at"].strftime("%Y-%m-%d %H:%M") if "created_at" in p else ""
+            "created_at": (p["created_at"] + datetime.timedelta(hours=9)).strftime("%Y-%m-%d %H:%M") if "created_at" in p else ""
         })
 
     # 템플릿 렌더

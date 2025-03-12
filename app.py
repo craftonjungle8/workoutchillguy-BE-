@@ -191,6 +191,7 @@ def mainpage():
     now = datetime.datetime.now()
     year = now.year
     month = now.month
+    today = datetime.date.today()
 
     # 이번 달 1일, 말일 구하기
     first_day = datetime.date(year, month, 1)
@@ -216,7 +217,7 @@ def mainpage():
             day_to_exercises[d] = []
         day_to_exercises[d].append(doc)
 
-    # 달력 데이터
+    # 달력 데이터 구성
     calendar_data = []
     start_weekday = first_day.weekday()  # 월=0, 화=1, ... 일=6
 
@@ -225,7 +226,7 @@ def mainpage():
         calendar_data.append({
             "day": None,
             "date_str": "",
-            "status": "no_records"  # 아무것도 안 출력
+            "status": "no_records"  # 공백은 흰색 처리
         })
 
     # (b) 1일부터 말일까지
@@ -233,20 +234,20 @@ def mainpage():
     while current_date <= last_day:
         iso_str = current_date.isoformat()  # 'YYYY-MM-DD'
         day_number = current_date.day
-        ex_list = day_to_exercises.get(iso_str, [])
 
-        if len(ex_list) == 0:
-            # 기록 없음 => 흰색
+        # 미래 날짜는 항상 흰색 처리
+        if current_date > today:
             status = "no_records"
         else:
-            # 하나라도 있으면 => 전부 checked == True 인지 확인
-            all_checked = all(doc.get("checked", False) for doc in ex_list)
-            if all_checked:
-                # 모두 체크 => 초록
-                status = "all_checked"
+            ex_list = day_to_exercises.get(iso_str, [])
+            if len(ex_list) == 0:
+                status = "no_records"
             else:
-                # 일부나 전부 unchecked => 빨강
-                status = "some_unchecked"
+                all_checked = all(doc.get("checked", False) for doc in ex_list)
+                if all_checked:
+                    status = "all_checked"
+                else:
+                    status = "some_unchecked"
 
         calendar_data.append({
             "day": day_number,
@@ -471,12 +472,7 @@ def diary_page(date_str):
         "date": date_str
     })
 
-    # 오늘 날짜와 비교해서 과거인지 확인
-    diary_date_obj = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
-    today = datetime.date.today()
-    is_past = (diary_date_obj < today)
-
-    # jinja2에 넘길 리스트
+    # (이제 과거도 미래도 수정 가능하므로 is_past 변수는 더 이상 체크에 사용하지 않음)
     exercise_list = []
     for e in diary_exercises:
         exercise_list.append({
@@ -492,8 +488,7 @@ def diary_page(date_str):
         "diary/diary.html",
         nickname=current_user["nickname"],
         diary_date=date_str,
-        exercises=exercise_list,
-        is_past=is_past
+        exercises=exercise_list
     )
 
 # ---------------------------------
@@ -553,13 +548,7 @@ def toggle_exercise_check(date_str, exercise_id):
     if not current_user:
         return redirect(url_for("login_page"))
 
-    # 과거 날짜라면 업데이트 불가
-    diary_date_obj = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
-    if diary_date_obj < datetime.date.today():
-        # 그냥 리다이렉트
-        return redirect(url_for("diary_page", date_str=date_str))
-
-    # form에서 체크 여부
+    # 날짜와 무관하게 수정 가능하도록 변경 (과거, 미래 모두 허용)
     checked_value = request.form.get("checked")
     is_checked = (checked_value == "on")
 

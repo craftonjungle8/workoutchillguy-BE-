@@ -125,7 +125,6 @@ def mypage():
     # 닉네임
     nickname = current_user.get("nickname", "")
 
-    # 마이페이지 내가쓴 글 조회 현재 UI 미구현
     # 내가 쓴 글 목록 (boards_collection에서 user_id = current_user["_id"] 인 것들 찾기)
     posts_cursor = boards_collection.find({"user_id": current_user["_id"]}).sort("created_at", -1)
     my_posts = []

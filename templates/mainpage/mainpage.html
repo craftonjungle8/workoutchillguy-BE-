@@ -28,7 +28,7 @@
         <!-- 예: 달력 / 출석률 / 웍스아웃 그래프 등 -->
         <div class="grid grid-cols-2 gap-4 h-screen">
             <!-- 왼쪽: 달력 -->
-            <div class="bg-white p-4 shadow rounded-lg flex-col h-4/5">
+            <div class="bg-white p-4 shadow rounded-lg flex-col h-3/5">
                 <h2 class="text-lg font-semibold mb-2 text-center">{{ nickname }}님의 오운완 캘린더</h2>
                 <div id="calendar" class="grid grid-cols-7 gap-1 text-center flex-grow">
                     <!-- 달력 코드... -->
@@ -38,7 +38,7 @@
             <!-- 오른쪽: 출석률 / 웍스아웃 차트 -->
             <div class="flex flex-col gap-4 items-center">
                 <!-- 출석률 원 그래프 -->
-                <div class="bg-white p-4 shadow rounded-lg flex-col items-center h-4/5">
+                <div class="bg-white p-4 shadow rounded-lg flex-col items-center">
                     <h2 class="text-lg font-semibold mb-2">이달의 출석률</h2>
                     <canvas id="attendanceChart" class="w-56 h-56"></canvas>
                 </div>

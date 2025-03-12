@@ -279,7 +279,6 @@ def board_list():
     page = request.args.get("page", 1, type=int)
     per_page = 9
 
-    # 전체 게시글 수 및 전체 페이지 수 계산
     total_posts = boards_collection.count_documents({})
     total_pages = (total_posts + per_page - 1) // per_page
 
@@ -290,7 +289,8 @@ def board_list():
         created_at = ""
         if "created_at" in post:
             try:
-                created_at = post["created_at"].strftime("%Y-%m-%d %H:%M")
+                # Convert UTC datetime to KST (UTC+9)
+                created_at = (post["created_at"] + datetime.timedelta(hours=9)).strftime("%Y-%m-%d %H:%M")
             except Exception:
                 created_at = str(post["created_at"])
         post_list.append({
@@ -326,7 +326,7 @@ def board_detail(post_id):
         "id": str(post_doc["_id"]),
         "title": post_doc["title"],
         "content": post_doc["content"],
-        "created_at": post_doc.get("created_at", "").strftime("%Y-%m-%d %H:%M")
+        "created_at": (post_doc["created_at"] + datetime.timedelta(hours=9)).strftime("%Y-%m-%d %H:%M")
                       if "created_at" in post_doc else ""
     }
 

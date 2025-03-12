@@ -89,15 +89,6 @@
     </div>
 
     <script>
-        // 노션 아이콘 클릭 시 드롭다운 토글
-        document.getElementById("notionIcon").addEventListener("click", function() {
-            document.getElementById("notionDropdown").classList.toggle("hidden");
-        });
-        // 깃허브 아이콘 클릭 시 드롭다운 토글
-        document.getElementById("githubIcon").addEventListener("click", function() {
-            document.getElementById("githubDropdown").classList.toggle("hidden");
-        });
-
         // 로그아웃 버튼 (단순히 /logout으로 이동해도 되지만, JS로 처리 예시)
         document.getElementById("logoutBtn").addEventListener("click", function(e) {
             // 필요 시 localStorage 토큰 제거 등 로직...

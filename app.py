@@ -270,6 +270,96 @@ def create_post():
     # 글 작성 완료 → 게시판 목록 페이지로 이동
     return redirect(url_for("board_list"))
 
+
+# ---------------------------------
+# (Board) 게시글 수정 페이지 (GET)
+# ---------------------------------
+@app.route("/board/<post_id>/edit", methods=["GET"])
+def edit_post_page(post_id):
+    current_user = get_current_user()
+    if not current_user:
+        return redirect(url_for("login_page"))
+
+    post_doc = boards_collection.find_one({"_id": ObjectId(post_id)})
+    if not post_doc:
+        # 게시글이 없으면 목록으로
+        return redirect(url_for("board_list"))
+
+    # 게시글 작성자와 현재 로그인 사용자가 다른 경우 → 접근 제한
+    if post_doc["user_id"] != current_user["_id"]:
+        return redirect(url_for("board_list"))
+
+    post_data = {
+        "id": str(post_doc["_id"]),
+        "title": post_doc["title"],
+        "content": post_doc["content"]
+    }
+
+    # edit_post.html 템플릿에서 post_data를 폼으로 보여주고 수정할 수 있도록 함
+    return render_template(
+        "board/edit_post.html",
+        nickname=current_user.get("nickname", ""),
+        email=current_user["email"],
+        post=post_data
+    )
+
+# ---------------------------------
+# (Board) 게시글 수정 처리 (POST)
+# ---------------------------------
+@app.route("/board/<post_id>/edit", methods=["POST"])
+def edit_post(post_id):
+    current_user = get_current_user()
+    if not current_user:
+        return redirect(url_for("login_page"))
+
+    post_doc = boards_collection.find_one({"_id": ObjectId(post_id)})
+    if not post_doc:
+        return redirect(url_for("board_list"))
+
+    # 게시글 작성자와 현재 로그인 사용자가 다른 경우 → 접근 제한
+    if post_doc["user_id"] != current_user["_id"]:
+        return redirect(url_for("board_list"))
+
+    # 폼 데이터
+    new_title = request.form.get("title")
+    new_content = request.form.get("content")
+
+    # DB 업데이트
+    boards_collection.update_one(
+        {"_id": ObjectId(post_id)},
+        {"$set": {
+            "title": new_title,
+            "content": new_content
+        }}
+    )
+
+    # 수정 완료 후 게시글 상세 페이지로 이동
+    return redirect(url_for("board_detail", post_id=post_id))
+
+# ---------------------------------
+# (Board) 게시글 삭제 (POST)
+# ---------------------------------
+@app.route("/board/<post_id>/delete", methods=["POST"])
+def delete_post(post_id):
+    current_user = get_current_user()
+    if not current_user:
+        return redirect(url_for("login_page"))
+
+    post_doc = boards_collection.find_one({"_id": ObjectId(post_id)})
+    if not post_doc:
+        return redirect(url_for("board_list"))
+
+    # 게시글 작성자와 현재 로그인 사용자가 다른 경우 → 접근 제한
+    if post_doc["user_id"] != current_user["_id"]:
+        return redirect(url_for("board_list"))
+
+    # DB에서 게시글 삭제
+    boards_collection.delete_one({"_id": ObjectId(post_id)})
+
+    # 삭제 후 게시판 목록 페이지로 이동
+    return redirect(url_for("board_list"))
+
+
 # -------------------------
 # 로그아웃 (쿠키 제거)
 # -------------------------

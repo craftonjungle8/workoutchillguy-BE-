@@ -27,7 +27,7 @@ def home():
 
 
 # ----------------------------------------
-# JWT 쿠키 검증을 위한 헬퍼 함수
+# JWT 쿠키 검증 헬퍼 함수
 # ----------------------------------------
 def get_current_user():
     """JWT 쿠키('jwt_token')에서 사용자 정보 추출 & DB 조회."""
@@ -73,7 +73,7 @@ def signup():
         "password": hashed_pw
     })
 
-    # 회원가입 완료 후 → 로그인 페이지로 리다이렉트
+    # 회원가입 완료 후 → 로그인 페이지로
     return redirect(url_for("login_page"))
 
 # -------------------------
@@ -114,7 +114,16 @@ def login():
     return resp
 
 # -------------------------
-# 마이페이지 (get)
+# 로그아웃 (쿠키 제거)
+# -------------------------
+@app.route("/logout", methods=["GET"])
+def logout():
+    resp = make_response(redirect(url_for("login_page")))
+    resp.set_cookie("jwt_token", "", expires=0)
+    return resp
+
+# -------------------------
+# 마이페이지 (GET)
 # -------------------------
 @app.route("/mypage", methods=["GET"])  
 def mypage():
@@ -125,7 +134,7 @@ def mypage():
     # 닉네임
     nickname = current_user.get("nickname", "")
 
-    # 내가 쓴 글 목록 (boards_collection에서 user_id = current_user["_id"] 인 것들 찾기)
+    # 내가 쓴 글 목록 (boards_collection에서 user_id = current_user["_id"] 인 것들)
     posts_cursor = boards_collection.find({"user_id": current_user["_id"]}).sort("created_at", -1)
     my_posts = []
     for p in posts_cursor:
@@ -166,11 +175,10 @@ def update_mypage():
         {"$set": update_fields}
     )
 
-    # 수정 후 다시 마이페이지로
     return redirect(url_for("mypage"))
 
 # -------------------------
-# 메인페이지 (GET)
+# 메인페이지 (GET) - 달력
 # -------------------------
 @app.route("/mainpage", methods=["GET"])
 def mainpage():
@@ -178,12 +186,86 @@ def mainpage():
     if not current_user:
         return redirect(url_for("login_page"))
 
-    # jinja2 템플릿 렌더링
-    # mainpage.html 안에서 {{ nickname }}, {{ email }} 사용 가능
+    nickname = current_user.get("nickname", "")
+    email = current_user["email"]
+
+    # 오늘 기준 연/월 계산
+    now = datetime.datetime.now()
+    year = now.year
+    month = now.month
+
+    # 이번 달 1일, 말일 구하기
+    first_day = datetime.date(year, month, 1)
+    if month == 12:
+        next_month_first_day = datetime.date(year+1, 1, 1)
+    else:
+        next_month_first_day = datetime.date(year, month+1, 1)
+    last_day = next_month_first_day - datetime.timedelta(days=1)
+
+    # 이번 달 운동기록 조회
+    user_id = current_user["_id"]
+    month_str = f"{year:04d}-{month:02d}"  # 예: 2025-03
+    exercise_docs = exercises_collection.find({
+        "user_id": user_id,
+        "date": {"$regex": f"^{month_str}"}
+    })
+
+    # 날짜별 운동기록 dict
+    day_to_exercises = {}
+    for doc in exercise_docs:
+        d = doc["date"]  # ex) '2025-03-10'
+        if d not in day_to_exercises:
+            day_to_exercises[d] = []
+        day_to_exercises[d].append(doc)
+
+    # 달력 데이터
+    calendar_data = []
+    start_weekday = first_day.weekday()  # 월=0, 화=1, ... 일=6
+
+    # (a) 첫 주의 공백
+    for _ in range(start_weekday):
+        calendar_data.append({
+            "day": None,
+            "date_str": "",
+            "status": "no_records"  # 아무것도 안 출력
+        })
+
+    # (b) 1일부터 말일까지
+    current_date = first_day
+    while current_date <= last_day:
+        iso_str = current_date.isoformat()  # 'YYYY-MM-DD'
+        day_number = current_date.day
+        ex_list = day_to_exercises.get(iso_str, [])
+
+        if len(ex_list) == 0:
+            # 기록 없음 => 흰색
+            status = "no_records"
+        else:
+            # 하나라도 있으면 => 전부 checked == True 인지 확인
+            all_checked = all(doc.get("checked", False) for doc in ex_list)
+            if all_checked:
+                # 모두 체크 => 초록
+                status = "all_checked"
+            else:
+                # 일부나 전부 unchecked => 빨강
+                status = "some_unchecked"
+
+        calendar_data.append({
+            "day": day_number,
+            "date_str": iso_str,
+            "status": status
+        })
+
+        current_date += datetime.timedelta(days=1)
+
+    # 템플릿 렌더링
     return render_template(
         "mainpage/mainpage.html",
-        nickname=current_user.get("nickname", ""),
-        email=current_user["email"]
+        nickname=nickname,
+        email=email,
+        year=year,
+        month=month,
+        calendar_data=calendar_data
     )
 
 # -------------------------
@@ -195,7 +277,6 @@ def board_list():
     if not current_user:
         return redirect(url_for("login_page"))
 
-    # DB에서 게시글 목록 조회 (최신순 정렬)
     all_posts = boards_collection.find().sort("created_at", -1)
     post_list = []
     for post in all_posts:
@@ -215,7 +296,7 @@ def board_list():
     )
 
 # -------------------------
-# 특정 게시글 상세 페이지 (GET)
+# 게시글 상세 (GET)
 # -------------------------
 @app.route("/board/<post_id>", methods=["GET"])
 def board_detail(post_id):
@@ -225,7 +306,6 @@ def board_detail(post_id):
 
     post_doc = boards_collection.find_one({"_id": ObjectId(post_id)})
     if not post_doc:
-        # 없는 게시글이면 /board 로 이동
         return redirect(url_for("board_list"))
 
     post_data = {
@@ -233,7 +313,7 @@ def board_detail(post_id):
         "title": post_doc["title"],
         "content": post_doc["content"],
         "created_at": post_doc.get("created_at", "").strftime("%Y-%m-%d %H:%M")
-                      if "created_at" in post_doc else "",
+                      if "created_at" in post_doc else ""
     }
 
     return render_template(
@@ -243,9 +323,9 @@ def board_detail(post_id):
         post=post_data
     )
 
-# ---------------------------------
+# -------------------------
 # 글 작성 폼 페이지 (GET)
-# ---------------------------------
+# -------------------------
 @app.route("/board/new", methods=["GET"])
 def new_post_page():
     current_user = get_current_user()
@@ -258,9 +338,9 @@ def new_post_page():
         email=current_user["email"]
     )
 
-# ---------------------------------
+# -------------------------
 # 글 작성 처리 (POST)
-# ---------------------------------
+# -------------------------
 @app.route("/board/new", methods=["POST"])
 def create_post():
     current_user = get_current_user()
@@ -278,13 +358,11 @@ def create_post():
     }
     boards_collection.insert_one(new_post)
 
-    # 글 작성 완료 → 게시판 목록 페이지로 이동
     return redirect(url_for("board_list"))
 
-
-# ---------------------------------
-# (Board) 게시글 수정 페이지 (GET)
-# ---------------------------------
+# -------------------------
+# 게시글 수정 페이지 (GET)
+# -------------------------
 @app.route("/board/<post_id>/edit", methods=["GET"])
 def edit_post_page(post_id):
     current_user = get_current_user()
@@ -293,10 +371,9 @@ def edit_post_page(post_id):
 
     post_doc = boards_collection.find_one({"_id": ObjectId(post_id)})
     if not post_doc:
-        # 게시글이 없으면 목록으로
         return redirect(url_for("board_list"))
 
-    # 게시글 작성자와 현재 로그인 사용자가 다른 경우 → 접근 제한
+    # 작성자만 수정 가능
     if post_doc["user_id"] != current_user["_id"]:
         return redirect(url_for("board_list"))
 
@@ -306,7 +383,6 @@ def edit_post_page(post_id):
         "content": post_doc["content"]
     }
 
-    # edit_post.html 템플릿에서 post_data를 폼으로 보여주고 수정할 수 있도록 함
     return render_template(
         "board/edit_post.html",
         nickname=current_user.get("nickname", ""),
@@ -314,9 +390,9 @@ def edit_post_page(post_id):
         post=post_data
     )
 
-# ---------------------------------
-# (Board) 게시글 수정 처리 (POST)
-# ---------------------------------
+# -------------------------
+# 게시글 수정 처리 (POST)
+# -------------------------
 @app.route("/board/<post_id>/edit", methods=["POST"])
 def edit_post(post_id):
     current_user = get_current_user()
@@ -327,15 +403,13 @@ def edit_post(post_id):
     if not post_doc:
         return redirect(url_for("board_list"))
 
-    # 게시글 작성자와 현재 로그인 사용자가 다른 경우 → 접근 제한
+    # 작성자만 수정 가능
     if post_doc["user_id"] != current_user["_id"]:
         return redirect(url_for("board_list"))
 
-    # 폼 데이터
     new_title = request.form.get("title")
     new_content = request.form.get("content")
 
-    # DB 업데이트
     boards_collection.update_one(
         {"_id": ObjectId(post_id)},
         {"$set": {
@@ -344,12 +418,11 @@ def edit_post(post_id):
         }}
     )
 
-    # 수정 완료 후 게시글 상세 페이지로 이동
     return redirect(url_for("board_detail", post_id=post_id))
 
-# ---------------------------------
-# (Board) 게시글 삭제 (POST)
-# ---------------------------------
+# -------------------------
+# 게시글 삭제 (POST)
+# -------------------------
 @app.route("/board/<post_id>/delete", methods=["POST"])
 def delete_post(post_id):
     current_user = get_current_user()
@@ -360,29 +433,17 @@ def delete_post(post_id):
     if not post_doc:
         return redirect(url_for("board_list"))
 
-    # 게시글 작성자와 현재 로그인 사용자가 다른 경우 → 접근 제한
+    # 작성자만 삭제 가능
     if post_doc["user_id"] != current_user["_id"]:
         return redirect(url_for("board_list"))
 
-    # DB에서 게시글 삭제
     boards_collection.delete_one({"_id": ObjectId(post_id)})
 
-    # 삭제 후 게시판 목록 페이지로 이동
     return redirect(url_for("board_list"))
 
 
-# -------------------------
-# 로그아웃 (쿠키 제거)
-# -------------------------
-@app.route("/logout", methods=["GET"])
-def logout():
-    resp = make_response(redirect(url_for("login_page")))
-    resp.set_cookie("jwt_token", "", expires=0)
-    return resp
-
 # ---------------------------------
 # (Diary) 날짜별 운동일기 페이지 (GET)
-# 예: /diary/2025-03-10
 # ---------------------------------
 @app.route("/diary/<date_str>", methods=["GET"])
 def diary_page(date_str):
@@ -397,7 +458,12 @@ def diary_page(date_str):
         "date": date_str
     })
 
-    # jinja2에 넘길 리스트 변환
+    # 오늘 날짜와 비교해서 과거인지 확인
+    diary_date_obj = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
+    today = datetime.date.today()
+    is_past = (diary_date_obj < today)
+
+    # jinja2에 넘길 리스트
     exercise_list = []
     for e in diary_exercises:
         exercise_list.append({
@@ -409,17 +475,16 @@ def diary_page(date_str):
             "checked": e.get("checked", False)
         })
 
-    # diary.html 템플릿 렌더
     return render_template(
         "diary/diary.html",
         nickname=current_user["nickname"],
         diary_date=date_str,
-        exercises=exercise_list
+        exercises=exercise_list,
+        is_past=is_past
     )
 
 # ---------------------------------
 # (Diary) 운동 기록 추가 (POST)
-# /diary/<date_str>/add
 # ---------------------------------
 @app.route("/diary/<date_str>/add", methods=["POST"])
 def add_exercise(date_str):
@@ -442,16 +507,14 @@ def add_exercise(date_str):
         "weight": weight,
         "reps": reps,
         "sets": sets,
-        "checked": False
+        "checked": False  # 새로 추가 시 기본 False
     }
     exercises_collection.insert_one(new_ex)
 
-    # 추가 후 같은 날짜 diary 페이지로
     return redirect(url_for("diary_page", date_str=date_str))
 
 # ---------------------------------
-# (Diary) 운동 기록 삭제 (POST)
-# /diary/<date_str>/delete/<exercise_id>
+# (Diary) 운동기록 삭제 (POST)
 # ---------------------------------
 @app.route("/diary/<date_str>/delete/<exercise_id>", methods=["POST"])
 def delete_exercise(date_str, exercise_id):
@@ -460,8 +523,6 @@ def delete_exercise(date_str, exercise_id):
         return redirect(url_for("login_page"))
 
     user_id = current_user["_id"]
-
-    # DB에서 해당 문서 삭제
     exercises_collection.delete_one({
         "_id": ObjectId(exercise_id),
         "user_id": user_id,
@@ -469,6 +530,37 @@ def delete_exercise(date_str, exercise_id):
     })
 
     return redirect(url_for("diary_page", date_str=date_str))
+
+# ---------------------------------
+# (Diary) 체크박스 토글 (POST)
+# ---------------------------------
+@app.route("/diary/<date_str>/check/<exercise_id>", methods=["POST"])
+def toggle_exercise_check(date_str, exercise_id):
+    current_user = get_current_user()
+    if not current_user:
+        return redirect(url_for("login_page"))
+
+    # 과거 날짜라면 업데이트 불가
+    diary_date_obj = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
+    if diary_date_obj < datetime.date.today():
+        # 그냥 리다이렉트
+        return redirect(url_for("diary_page", date_str=date_str))
+
+    # form에서 체크 여부
+    checked_value = request.form.get("checked")
+    is_checked = (checked_value == "on")
+
+    exercises_collection.update_one(
+        {
+            "_id": ObjectId(exercise_id),
+            "user_id": current_user["_id"],
+            "date": date_str
+        },
+        {"$set": {"checked": is_checked}}
+    )
+
+    return redirect(url_for("diary_page", date_str=date_str))
+
 
 # ---------------------------------
 # Flask 실행

@@ -8,7 +8,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://kit.fontawesome.com/a076d05399.js"></script>
 
     <style>
         .delete-icon {
@@ -40,9 +39,9 @@
     <div class="w-[1017px] h-[94px] bg-white p-4 flex justify-between items-center border-b border-gray-300">
         <div class="text-3xl font-bold text-gray-800">오운완</div>
         <div class="flex space-x-6 text-sm text-gray-800">
-            <a href="/mate-search" class="text-gray-800 hover:text-[#38773E] transition duration-300">메이트찾기</a>
+            <a href="/board" class="text-gray-800 hover:text-[#38773E] transition duration-300">메이트찾기</a>
             <a href="/mypage" class="text-gray-800 hover:text-[#38773E] transition duration-300">마이페이지</a>
-            <a href="#" id="logoutBtn" class="text-gray-800 hover:text-[#38773E] transition duration-300">로그아웃</a>
+            <a href="/logout" class="text-gray-800 hover:text-[#38773E] transition duration-300">로그아웃</a>
         </div>
     </div>
 
@@ -55,20 +54,25 @@
 
         <!-- 운동 설정 영역 -->
         <div id="exerciseArea" class="mt-16 w-full flex flex-col items-center pb-4">
-            <!-- 상단: 무게/횟수/세트 버튼(디자인용) -->
-            <div class="flex items-center space-x-4 mb-4 justify-end align-middle">
+            <!-- 상단: 무게/횟수/세트 표시(디자인) -->
+            <div class="flex items-center space-x-4 mb-4 justify-end">
                 <button class="button">무게</button>
                 <button class="button">횟수</button>
                 <button class="button">세트</button>
             </div>
 
-            <!-- 이미 저장된 운동 목록 반복 -->
+            <!-- 저장된 운동 목록 -->
             {% for e in exercises %}
             <div class="exercise-row flex space-x-4">
-                <!-- 체크박스 (사용 여부) -->
-                <input type="checkbox" class="w-4 h-4"
-                       {% if e.checked %}checked{% endif %} disabled> 
-                <!-- 운동명 -->
+                <!-- 체크박스 (지난 날짜면 disabled) -->
+                <form method="POST" action="/diary/{{ diary_date }}/check/{{ e._id }}">
+                    <input type="checkbox" name="checked"
+                           class="w-4 h-4"
+                           {% if e.checked %}checked{% endif %}
+                           {% if is_past %}disabled{% else %}onchange="this.form.submit()" {% endif %}>
+                </form>
+
+                <!-- 운동명 (disabled) -->
                 <select class="dropdown w-[120px]" disabled>
                     <option value="스쿼트" {% if e.exercise == "스쿼트" %}selected{% endif %}>스쿼트</option>
                     <option value="벤치프레스" {% if e.exercise == "벤치프레스" %}selected{% endif %}>벤치프레스</option>
@@ -76,33 +80,41 @@
                     <option value="풀업" {% if e.exercise == "풀업" %}selected{% endif %}>풀업</option>
                     <option value="바벨로우" {% if e.exercise == "바벨로우" %}selected{% endif %}>바벨로우</option>
                 </select>
-                <!-- 무게 -->
+
+                <!-- 무게 (disabled) -->
                 <select class="dropdown" disabled>
                     {% for w in range(5, 105, 5) %}
-                    <option value="{{w}}"
-                        {% if e.weight == w %}selected{% endif %}>{{w}}kg</option>
-                    {% endfor %}
-                </select>
-                <!-- 횟수 -->
-                <select class="dropdown" disabled>
-                    {% for r in range(1, 21) %}
-                    <option value="{{r}}" {% if e.reps == r %}selected{% endif %}>
-                        {{r}}회
-                    </option>
-                    {% endfor %}
-                </select>
-                <!-- 세트 -->
-                <select class="dropdown" disabled>
-                    {% for s in range(1, 11) %}
-                    <option value="{{s}}" {% if e.sets == s %}selected{% endif %}>
-                        {{s}}세트
+                    <option value="{{ w }}"
+                        {% if e.weight == w %}selected{% endif %}>
+                        {{ w }}kg
                     </option>
                     {% endfor %}
                 </select>
 
-                <!-- 삭제 아이콘 => 폼으로 POST 전송 -->
+                <!-- 횟수 (disabled) -->
+                <select class="dropdown" disabled>
+                    {% for r in range(1, 21) %}
+                    <option value="{{ r }}"
+                        {% if e.reps == r %}selected{% endif %}>
+                        {{ r }}회
+                    </option>
+                    {% endfor %}
+                </select>
+
+                <!-- 세트 (disabled) -->
+                <select class="dropdown" disabled>
+                    {% for s in range(1, 11) %}
+                    <option value="{{ s }}"
+                        {% if e.sets == s %}selected{% endif %}>
+                        {{ s }}세트
+                    </option>
+                    {% endfor %}
+                </select>
+
+                <!-- 삭제 아이콘 (과거에도 허용할지 여부는 선택)-->
                 <form method="POST" action="/diary/{{ diary_date }}/delete/{{ e._id }}">
-                    <button type="submit" class="delete-icon">
+                    <button type="submit" class="delete-icon"
+                            {% if is_past %}disabled{% endif %}>
                         <i class="fas fa-trash"></i>
                     </button>
                 </form>
@@ -110,11 +122,12 @@
             {% endfor %}
         </div>
 
-        <!-- (구분 바) -->
+        <!-- 구분 바 -->
         <div class="w-[630px] h-[50px] bg-[#E5E5E5]"></div>
     </div>
 
-    <!-- 운동 추가 폼 -->
+    <!-- 운동 추가 폼 (과거 날짜면 비활성화) -->
+    {% if not is_past %}
     <div class="w-[630px] mt-8">
         <h3 class="text-xl font-bold mb-2">새 운동 기록 추가</h3>
         <form method="POST" action="/diary/{{ diary_date }}/add" class="flex space-x-2 mb-6">
@@ -147,6 +160,12 @@
             <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md">추가</button>
         </form>
     </div>
+    {% else %}
+    <!-- 과거날짜면 추가 폼 숨기거나 비활성화 -->
+    <div class="w-[630px] mt-8">
+        <p class="text-gray-500">과거 날짜는 운동을 새로 기록할 수 없습니다.</p>
+    </div>
+    {% endif %}
 
     <!-- 최하단 고정 박스 -->
     <div class="w-full h-[50px] bg-[#38773E] flex justify-between items-center px-10 fixed bottom-0 left-0">
@@ -155,7 +174,7 @@
             <span>오운완</span>
         </div>
         <div class="flex items-center space-x-6">
-            <a href="https://www.notion.so/1b2d5b3e6ec58080ae3bcc88009abb41?pvs=4" target="_blank">
+            <a href="https://www.notion.so" target="_blank">
                 <img src="../../static/images/notion_logo.png" alt="Notion" class="w-8 h-8 cursor-pointer">
             </a>
             <a href="https://github.com/craftonjungle8" target="_blank">
@@ -163,14 +182,5 @@
             </a>
         </div>
     </div>
-
-    <script>
-        // 로그아웃 버튼에 대한 JS 로직(필요 시)
-        document.getElementById("logoutBtn").addEventListener("click", function(e){
-            // e.preventDefault();
-            // localStorage.removeItem("token");
-            // window.location.href = "/logout";
-        });
-    </script>
 </body>
 </html>

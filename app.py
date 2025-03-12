@@ -427,7 +427,7 @@ def create_post():
     }
     boards_collection.insert_one(new_post)
 
-    return redirect(url_for("board_list"))
+    return redirect(url_for("board_list", success = True))
 
 # -------------------------
 # 게시글 수정 페이지 (GET)

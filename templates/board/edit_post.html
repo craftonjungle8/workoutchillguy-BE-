@@ -1,6 +1,3 @@
-edit_post.html
-
-<!-- templates/board/edit_post.html -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -103,13 +100,10 @@ edit_post.html
         window.onload = function() {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('success')) {
-                alert("수정이 완료되었습니다.");
-                window.location.href = "/board";  // 게시글 목록으로 리다이렉트
+                alert("수정이 완료되었습니다."); // 수정 완료 메시지
+                window.location.href= "/board";
             }
         };
     </script>
 </body>
 </html>
-
-
-

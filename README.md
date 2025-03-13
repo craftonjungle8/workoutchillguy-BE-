@@ -1,13 +1,6 @@
 [오운완(노션).zip](https://github.com/user-attachments/files/19225506/default.zip)
 # 오운완
 
-[Team4](Team4%201b2d5b3e6ec5808fabf9e2d396b9ff7b.csv)
-
-- 4팀 사진
-    
-    ![IMG_9164.jpeg](IMG_9164.jpeg)
-    
-
 JIRA: https://kfjgw1t4.atlassian.net/jira/software/projects/BXFD/boards/2
 
 Slack: https://w1710027293-p6w738751.slack.com/archives/C08GP07DK9V
@@ -46,11 +39,12 @@ Slack: https://w1710027293-p6w738751.slack.com/archives/C08GP07DK9V
 
 ## FlowChart
 
-![운동칠가이 플로우차트3.drawio.png](%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%A9%E1%86%BC%E1%84%8E%E1%85%B5%E1%86%AF%E1%84%80%E1%85%A1%E1%84%8B%E1%85%B5_%E1%84%91%E1%85%B3%E1%86%AF%E1%84%85%E1%85%A9%E1%84%8B%E1%85%AE%E1%84%8E%E1%85%A1%E1%84%90%E1%85%B33.drawio.png)
+![운동칠가이 플로우차트3.drawio.png]
+![Image](https://github.com/user-attachments/assets/f207a4a0-7d35-4d24-af09-4d124a027671)
 
 ## Architecture 다이어그램
 
-![오운완 아키텍쳐D.png](%E1%84%8B%E1%85%A9%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%8B%E1%85%AA%E1%86%AB_%E1%84%8B%E1%85%A1%E1%84%8F%E1%85%B5%E1%84%90%E1%85%A6%E1%86%A8%E1%84%8E%E1%85%A7D.png)
+![Image](https://github.com/user-attachments/assets/03a828c4-b385-42b8-a3de-3a713edd1eaf)
 
 ## 기능명세서
 <img width="1744" alt="Image" src="https://github.com/user-attachments/assets/39423e46-6e5b-4c1f-807f-8307fb5edade" />
@@ -69,7 +63,7 @@ Slack: https://w1710027293-p6w738751.slack.com/archives/C08GP07DK9V
 
 ## ERD
 
-![스크린샷 2025-03-13 005106.png](%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7_2025-03-13_005106.png)
+![Image](https://github.com/user-attachments/assets/2b9cdece-c328-4d3e-ba14-22211079f2ef)
 
 [https://www.erdcloud.com/d/iP2go7xxpQrwoHadd](https://www.erdcloud.com/d/iP2go7xxpQrwoHadd)
 

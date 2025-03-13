@@ -8,7 +8,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome CSS CDN -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-
 </head>
 <body class="bg-white flex flex-col items-center min-h-screen">
 
@@ -23,7 +22,15 @@
       <a href="#" id="logoutBtn" class="text-gray-800 hover:text-[#38773E] transition duration-300">로그아웃</a>
     </div>
   </div>
-  
+
+  {% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <script>
+      alert("{{ messages[0] }}");
+    </script>
+  {% endif %}
+  {% endwith %}
+
   <!-- 마이페이지 박스 -->
   <div class="bg-white p-8 rounded-lg shadow-lg w-[673px] h-auto mt-10 flex flex-col items-center">
     <h2 class="text-2xl font-bold text-center mb-6 text-[#38773E]">마이페이지</h2>
@@ -38,7 +45,7 @@
 
     <!-- 닉네임, 비밀번호 수정 폼 (POST) -->
     <form id="mypageForm" method="POST" action="/mypage/update" class="w-full flex flex-col items-center">
-      <!-- 닉네임 입력란 (서버에서 가져온 닉네임을 기본값으로 표시) -->
+      <!-- 닉네임 입력란 -->
       <div class="mb-4">
         <input 
           type="text" 
@@ -48,21 +55,19 @@
           value="{{ nickname }}"
           required>
       </div>
-      <!-- 비밀번호 입력란 (새 비밀번호 입력 용도) -->
+      <!-- 비밀번호 입력란 -->
       <div class="mb-4">
         <input 
           type="password" 
           name="password" 
           class="w-[363.34px] h-[59.31px] p-2 border border-gray-300 bg-gray-200 rounded-lg mt-1 text-left" 
-          placeholder="New Password (변경 시에만 입력)" 
-        >
+          placeholder="New Password (변경 시에만 입력)">
       </div>
       <!-- 수정 버튼 -->
       <button 
         type="submit" 
         class="w-[363.34px] h-[59.31px] py-2 text-white font-semibold rounded-lg hover:bg-opacity-80 transition duration-200 text-center"
-        style="background-color: #38773E;"
-      >
+        style="background-color: #38773E;">
         수정
       </button>
     </form>
@@ -89,50 +94,48 @@
     </div>
   </div>
 
-<!-- 게시글 상세 모달 (마이페이지 템플릿 내에 추가) -->
-<div id="postModal" class="fixed inset-0 flex items-center justify-center bg-[#FFECD1] bg-opacity-50 hidden">
-  <div class="bg-white w-[830px] h-[650px] p-6 rounded-lg shadow-lg flex flex-col overflow-y-auto">
-    <!-- 제목과 수정/삭제 버튼 영역 -->
-    <div class="flex justify-between items-center mb-4">
-      <h2 id="modalTitle" class="text-3xl font-bold text-gray-800"></h2>
-      <!-- 수정/삭제 버튼 (마이페이지에서는 본인이 작성한 글이므로 항상 노출) -->
-      <div class="flex space-x-2">
-        <form method="GET" id="editPostForm">
-          <button type="submit" class="bg-yellow-500 text-white p-2 rounded-lg hover:bg-yellow-600">수정하기</button>
-        </form>
-        <form method="POST" id="deletePostForm">
-          <button type="submit" class="bg-red-600 text-white p-2 rounded-lg hover:bg-red-700">삭제하기</button>
-        </form>
+  <!-- 게시글 상세 모달 (마이페이지 템플릿 내) -->
+  <!-- board.html의 모달 스타일과 동일하게 반응형으로 수정 -->
+  <div id="postModal" class="fixed inset-0 flex items-center justify-center bg-[#FFECD1] bg-opacity-50 hidden">
+    <div class="bg-white w-11/12 max-w-3xl p-6 rounded-lg shadow-lg flex flex-col relative" style="max-height: 90vh;">
+      <!-- 제목과 수정/삭제 버튼 영역 -->
+      <div class="flex justify-between items-center mb-4">
+        <h2 id="modalTitle" class="text-3xl font-bold text-gray-800"></h2>
+        <!-- 수정/삭제 버튼 (마이페이지에서는 본인 작성 글이므로 항상 노출) -->
+        <div class="flex space-x-2">
+          <form method="GET" id="editPostForm">
+            <button type="submit" class="bg-yellow-500 text-white p-2 rounded-lg hover:bg-yellow-600">수정하기</button>
+          </form>
+          <form method="POST" id="deletePostForm">
+            <button type="submit" class="bg-red-600 text-white p-2 rounded-lg hover:bg-red-700">삭제하기</button>
+          </form>
+        </div>
       </div>
+      <div class="flex justify-between items-center">
+        <p id="modalDate" class="text-sm text-gray-500 mb-4"></p>
+        <p id="modalNickname" class="text-lg font-bold text-[#38773E] mb-4">{{ nickname }}</p>
+      </div>
+      <div id="modalContent" class="border p-4 bg-gray-100 rounded h-[200px] overflow-y-auto"></div>
+      
+      <!-- 댓글 섹션 (댓글 작성 버튼을 레이블 오른쪽에 배치) -->
+      <div id="modalCommentSection" class="mt-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-bold text-[#38773E]">댓글 작성</h3>
+          <button id="submitComment" class="px-4 py-2 bg-[#38773E] hover:bg-[#2A592E] text-white rounded transition duration-200">댓글 작성</button>
+        </div>
+        <textarea id="commentInput" class="w-full h-[80px] p-2 border border-[#A7D1AB] rounded mt-2 focus:ring-[#A7D1AB] focus:border-[#A7D1AB] bg-[#F8FAF7]" placeholder="댓글을 입력하세요..."></textarea>
+        <ul id="commentList" class="mt-2 space-y-2"></ul>
+      </div>
+      <button id="closeModal" class="mt-4 px-4 py-2 bg-red-500 text-white rounded">닫기</button>
     </div>
-
-    <div class="flex justify-between items-center">
-      <p id="modalDate" class="text-sm text-gray-500 mb-4"></p>
-      <p id="modalNickname" class="text-lg font-bold text-[#38773E] mb-4">{{ nickname }}</p>
-    </div>
-    <div id="modalContent" class="border p-4 h-[200px] overflow-y-auto bg-gray-100 rounded"></div>
-    
-    <!-- 댓글 섹션 -->
-    <div id="modalCommentSection" class="mt-4">
-      <h3 class="text-lg font-bold text-[#38773E]">댓글</h3>
-      <ul id="commentList" class="mt-2 space-y-2"></ul>
-      <textarea id="commentInput" class="w-full h-[80px] p-2 border border-[#A7D1AB] rounded mt-2 focus:ring-[#A7D1AB] focus:border-[#A7D1AB] bg-[#F8FAF7]" placeholder="댓글을 입력하세요..."></textarea>
-      <button id="submitComment" class="mt-2 px-4 py-2 bg-[#38773E] hover:bg-[#2A592E] text-white rounded transition duration-200">댓글 작성</button>
-    </div>
-
-    <button id="closeModal" class="mt-4 px-4 py-2 bg-red-500 text-white rounded">닫기</button>
   </div>
-</div>
 
   <!-- 최하단 고정 박스 -->
   <div class="w-full h-[50px] bg-[#38773E] flex justify-between items-center px-10 fixed bottom-0 left-0">
-    <!-- 오운완 아이콘 -->
     <div class="text-white text-xl font-bold flex items-center space-x-2">
       <i class="fas fa-dumbbell"></i>
       <span>오운완</span>
     </div>
-
-    <!-- 우측 노션과 깃허브 아이콘 -->
     <div class="flex items-center space-x-6">
       <div class="relative">
         <a href="https://www.notion.so" target="_blank">
@@ -154,105 +157,100 @@
       localStorage.removeItem('access_token');
       window.location.href = '/login';
     });
-  </script>
 
+    let currentPostId = null; // 현재 모달에 표시 중인 게시글 ID
 
-<script>
-  let currentPostId = null; // 현재 모달에 표시 중인 게시글 ID
+    // 마이페이지 게시글 클릭 시 모달 열기
+    const mypostItems = document.querySelectorAll('.mypostItem');
+    mypostItems.forEach(item => {
+      item.addEventListener('click', () => {
+        const title = item.getAttribute('data-title');
+        const content = item.getAttribute('data-content');
+        const date = item.getAttribute('data-date');
+        currentPostId = item.getAttribute('data-id'); // 게시글 ID 저장
 
-  // 마이페이지 게시글 클릭 시 모달 열기 (기존 코드 내에서)
-const mypostItems = document.querySelectorAll('.mypostItem');
-mypostItems.forEach(item => {
-  item.addEventListener('click', () => {
-    const title = item.getAttribute('data-title');
-    const content = item.getAttribute('data-content');
-    const date = item.getAttribute('data-date');
-    currentPostId = item.getAttribute('data-id'); // 게시글 ID 저장
+        document.getElementById('modalTitle').textContent = title;
+        document.getElementById('modalContent').textContent = content;
+        document.getElementById('modalDate').textContent = date;
+        
+        // 댓글 로드
+        loadComments(currentPostId);
+        
+        // 모달 표시
+        document.getElementById('postModal').classList.remove('hidden');
+      });
+    });
 
-    document.getElementById('modalTitle').textContent = title;
-    document.getElementById('modalContent').textContent = content;
-    document.getElementById('modalDate').textContent = date;
-    
-    // 댓글 로드
-    loadComments(currentPostId);
-    
-    // 모달 표시
-    document.getElementById('postModal').classList.remove('hidden');
-  });
-});
+    // 수정 버튼 이벤트 (게시글 편집 페이지로 이동)
+    document.getElementById('editPostForm').onsubmit = function(event) {
+      event.preventDefault();
+      window.location.href = `/board/${currentPostId}/edit`;
+    };
 
-// 수정 버튼 이벤트 (게시글 편집 페이지로 이동)
-document.getElementById('editPostForm').onsubmit = function(event) {
-  event.preventDefault();
-  // 게시글 수정 페이지는 board/<post_id>/edit 경로를 사용
-  window.location.href = `/board/${currentPostId}/edit`;
-};
+    // 삭제 버튼 이벤트
+    document.getElementById('deletePostForm').onsubmit = function(event) {
+      event.preventDefault();
+      if (confirm("정말 삭제하시겠습니까?")) {
+        fetch(`/board/${currentPostId}/delete`, { method: 'POST' })
+          .then(response => {
+            if(response.ok){
+              location.reload();
+            } else {
+              console.error('삭제 실패:', response.statusText);
+            }
+          })
+          .catch(err => console.error('삭제 에러:', err));
+      }
+    };
 
-// 삭제 버튼 이벤트 (경고창 표시 후 삭제 API 호출)
-document.getElementById('deletePostForm').onsubmit = function(event) {
-  event.preventDefault();
-  if (confirm("정말 삭제하시겠습니까?")) {
-    fetch(`/board/${currentPostId}/delete`, { method: 'POST' })
-      .then(response => {
-        if(response.ok){
-          location.reload();
+    // 댓글 로드 함수
+    function loadComments(postId) {
+      fetch(`/api/comments/${postId}`)
+        .then(response => response.json())
+        .then(data => {
+          const commentList = document.getElementById('commentList');
+          commentList.innerHTML = '';
+          data.forEach(comment => {
+            const li = document.createElement('li');
+            li.className = 'p-2 border rounded bg-gray-100';
+            li.innerHTML = `<strong>${comment.user}</strong> <span class="text-sm text-gray-500">${comment.created_at}</span>
+                            <p>${comment.content}</p>`;
+            commentList.appendChild(li);
+          });
+        })
+        .catch(err => console.error('댓글 불러오기 에러:', err));
+    }
+
+    // 댓글 작성 이벤트
+    document.getElementById('submitComment').addEventListener('click', () => {
+      const commentInput = document.getElementById('commentInput');
+      const commentText = commentInput.value.trim();
+      if (!commentText) return;
+      
+      fetch(`/api/comments/${currentPostId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ content: commentText })
+      })
+      .then(response => response.json())
+      .then(result => {
+        if(result.error){
+          alert(result.error);
         } else {
-          console.error('삭제 실패:', response.statusText);
+          loadComments(currentPostId);
+          commentInput.value = '';
         }
       })
-      .catch(err => console.error('삭제 에러:', err));
-  }
-};
+      .catch(err => console.error('댓글 작성 에러:', err));
+    });
 
-  // 댓글 로드 함수
-  function loadComments(postId) {
-    fetch(`/api/comments/${postId}`)
-      .then(response => response.json())
-      .then(data => {
-        const commentList = document.getElementById('commentList');
-        commentList.innerHTML = ''; // 기존 댓글 삭제
-        data.forEach(comment => {
-          const li = document.createElement('li');
-          li.className = 'p-2 border rounded bg-gray-100';
-          li.innerHTML = `<strong>${comment.user}</strong> <span class="text-sm text-gray-500">${comment.created_at}</span>
-                          <p>${comment.content}</p>`;
-          commentList.appendChild(li);
-        });
-      })
-      .catch(err => console.error('댓글 불러오기 에러:', err));
-  }
-
-  // 댓글 작성 이벤트
-  document.getElementById('submitComment').addEventListener('click', () => {
-    const commentInput = document.getElementById('commentInput');
-    const commentText = commentInput.value.trim();
-    if (!commentText) return;
-    
-    fetch(`/api/comments/${currentPostId}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ content: commentText })
-    })
-    .then(response => response.json())
-    .then(result => {
-      if(result.error){
-        alert(result.error);
-      } else {
-        // 댓글 작성 성공 후 댓글 리스트 갱신
-        loadComments(currentPostId);
-        commentInput.value = '';
-      }
-    })
-    .catch(err => console.error('댓글 작성 에러:', err));
-  });
-
-  // 모달 닫기 기능
-  document.getElementById('closeModal').addEventListener('click', () => {
-    document.getElementById('postModal').classList.add('hidden');
-  });
-</script>
+    // 모달 닫기 기능
+    document.getElementById('closeModal').addEventListener('click', () => {
+      document.getElementById('postModal').classList.add('hidden');
+    });
+  </script>
 
 </body>
 </html>

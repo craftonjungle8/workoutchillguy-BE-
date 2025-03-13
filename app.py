@@ -8,6 +8,7 @@ from bson import ObjectId
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "your_secret_key"  # 실제 환경에서는 안전하게 보관 (.env 등)
 app.config["MONGO_URI"] = "mongodb://localhost:27017/1weekmini"
+#app.config["MONGO_URI"] = "mongodb://sehyun5004:tpgus8028~@3.37.61.32:27017/1weekmini?authSource=admin"
 
 mongo = PyMongo(app)
 users_collection = mongo.db.users
@@ -103,7 +104,7 @@ def mypage():
             "content": p["content"],
             "created_at": (p["created_at"] + datetime.timedelta(hours=9)).strftime("%Y-%m-%d %H:%M") if "created_at" in p else ""
         })
-    return render_template("mypage/mypage.html", nickname=nickname, my_posts=my_posts)
+    return render_template("mypage/mypage.html", nickname=nickname, my_posts=my_posts , current_user=current_user)
 
 @app.route("/mypage/update", methods=["POST"])
 def update_mypage():
@@ -117,6 +118,7 @@ def update_mypage():
         hashed_pw = bcrypt.hashpw(new_password.encode("utf-8"), bcrypt.gensalt())
         update_fields["password"] = hashed_pw
     users_collection.update_one({"_id": current_user["_id"]}, {"$set": update_fields})
+    flash("수정 되었습니다.")  # 업데이트 완료 메시지 플래시
     return redirect(url_for("mypage"))
 
 # 메인페이지 – 달력 및 차트 (UI는 클라이언트에서 렌더링)
@@ -342,17 +344,22 @@ def board_list():
         created_at = ""
         if "created_at" in post:
             try:
-                # Convert UTC datetime to KST (UTC+9)
                 created_at = (post["created_at"] + datetime.timedelta(hours=9)).strftime("%Y-%m-%d %H:%M")
             except Exception:
                 created_at = str(post["created_at"])
-        post_list.append({
-            "id": str(post["_id"]),
-            "title": post["title"],
-            "content": post["content"],
-            "created_at": created_at,
-            "user_id": post["user_id"]  # 게시글 작성자 ID 추가
-        })
+    
+            # 작성자 닉네임 가져오기
+            user = users_collection.find_one({"_id": post["user_id"]})
+            author_nickname = user.get("nickname") if user else "익명"
+            
+            post_list.append({
+                "id": str(post["_id"]),
+                "title": post["title"],
+                "content": post["content"],
+                "created_at": created_at,
+                "user_id": post["user_id"],
+                "nickname": author_nickname  # 게시글 작성자의 닉네임 추가
+            })
 
     return render_template(
         "board/board.html",
@@ -427,7 +434,7 @@ def create_post():
     }
     boards_collection.insert_one(new_post)
 
-    return redirect(url_for("board_list", success = True))
+    return redirect(url_for("board_list", success = True),)
 
 # -------------------------
 # 게시글 수정 페이지 (GET)
@@ -486,8 +493,6 @@ def edit_post(post_id):
             "content": new_content
         }}
     )
-
-    flash("수정이 완료되었습니다.")  # 수정 완료 메시지
     return redirect(url_for("board_list"))  # 게시글 리스트로 이동
 
 # -------------------------
@@ -523,6 +528,7 @@ def get_comments(post_id):
         comment_list.append({
             "id": str(comment["_id"]),
             "user": comment.get("user", "익명"),
+            "user_id": str(comment.get("user_id")) if comment.get("user_id") else "",  # user_id 추가
             "content": comment.get("content", ""),
             "created_at": (comment["created_at"] + datetime.timedelta(hours=9)).strftime("%Y-%m-%d %H:%M")
                           if "created_at" in comment else ""
@@ -544,12 +550,87 @@ def post_comment(post_id):
     new_comment = {
          "post_id": post_id,
          "user": current_user.get("nickname", "익명"),
+         "user_id": str(current_user["_id"]), 
          "content": content,
          "created_at": datetime.datetime.utcnow()
     }
     comments_collection.insert_one(new_comment)
     return jsonify({"message": "댓글이 추가되었습니다."}), 201
 
+@app.route("/api/user_profile/<user_id>", methods=["GET"])
+def user_profile(user_id):
+    # 사용자 ID로 사용자 정보 조회
+    try:
+        user = users_collection.find_one({"_id": ObjectId(user_id)})
+    except Exception:
+        return jsonify({"error": "유효하지 않은 사용자 ID입니다."}), 400
+
+    if not user:
+        return jsonify({"error": "사용자를 찾을 수 없습니다."}), 404
+
+    # 현재 달 정보를 사용 (UTC 기준)
+    now = datetime.datetime.utcnow()
+    year, month = now.year, now.month
+
+    # 출석률 계산
+    first_day = datetime.date(year, month, 1)
+    if month == 12:
+        next_month_first_day = datetime.date(year + 1, 1, 1)
+    else:
+        next_month_first_day = datetime.date(year, month + 1, 1)
+    last_day = next_month_first_day - datetime.timedelta(days=1)
+    today = datetime.date.today()
+    month_str = f"{year:04d}-{month:02d}-"
+
+    exercise_docs = exercises_collection.find({
+        "user_id": ObjectId(user_id),
+        "date": {"$regex": f"^{month_str}"}
+    })
+
+    day_to_records = {}
+    for doc in exercise_docs:
+        d = doc["date"]
+        day_to_records.setdefault(d, []).append(doc)
+
+    total_days = 0
+    attended_days = 0
+    for day in range(1, last_day.day + 1):
+        current_day = datetime.date(year, month, day)
+        # 미래 날짜는 계산하지 않음
+        if current_day > today:
+            continue
+        total_days += 1
+        date_str = f"{year:04d}-{month:02d}-{day:02d}"
+        records = day_to_records.get(date_str, [])
+        # 해당 날짜에 모든 운동이 체크되었다면 출석으로 간주
+        if records and all(rec.get("checked", False) for rec in records):
+            attended_days += 1
+
+    attendance = {"present": attended_days, "absent": total_days - attended_days}
+
+    # 운동 기록 빈도 계산 (이번 달 기준, 상위 5개)
+    cursor = exercises_collection.find({
+        "user_id": ObjectId(user_id),
+        "date": {"$regex": f"^{month_str}"}
+    })
+    counts = {}
+    for doc in cursor:
+        exercise = doc.get("exercise", "기타")
+        counts[exercise] = counts.get(exercise, 0) + 1
+    sorted_items = sorted(counts.items(), key=lambda item: item[1], reverse=True)[:5]
+    workout_stats = {
+        "labels": [item[0] for item in sorted_items],
+        "data": [item[1] for item in sorted_items]
+    }
+
+    # 최종 프로필 데이터 구성
+    profile = {
+        "nickname": user.get("nickname", "익명"),
+        "email": user.get("email", ""),
+        "attendance": attendance,
+        "workout_stats": workout_stats
+    }
+    return jsonify(profile)
 
 
 if __name__ == "__main__":

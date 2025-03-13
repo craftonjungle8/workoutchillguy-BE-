@@ -1,109 +1,127 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>글 수정 페이지</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        input:focus, textarea:focus {
-            outline: none;
-            border-color: #306034;
-            box-shadow: none;
-        }
-    </style>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>글 수정 페이지</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #306034;
+      box-shadow: none;
+    }
+  </style>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet" />
 </head>
 <body class="flex flex-col items-center min-h-screen">
 
-    <div class="w-[1017px] h-[94px] bg-white p-4 flex justify-between items-center border-b border-gray-300">
-        <div class="text-3xl font-bold text-gray-800">오운완</div>
-        <div class="flex space-x-6 text-sm text-gray-800">
-            <a href="/mate-search" class="text-[#38773E] hover:text-[#2E5F31] font-semibold transition duration-300">메이트찾기</a>
-            <a href="/mypage" class="text-gray-800 hover:text-[#38773E] transition duration-300">마이페이지</a>
-            <a href="/logout" class="text-gray-800 hover:text-[#38773E] transition duration-300" id="logoutBtn">로그아웃</a>
-        </div>
+  <div class="w-[1017px] h-[94px] bg-white p-4 flex justify-between items-center border-b border-gray-300">
+    <div class="text-3xl font-bold text-gray-800">오운완</div>
+    <div class="flex space-x-6 text-sm text-gray-800">
+      <a href="/board" class="text-gray-800 hover:text-[#38773E] transition duration-300">메이트찾기</a>
+      <a href="/mypage" class="text-gray-800 hover:text-[#38773E] transition duration-300">마이페이지</a>
+      <a href="/logout" class="text-gray-800 hover:text-[#38773E] transition duration-300" id="logoutBtn">로그아웃</a>
     </div>
+  </div>
 
-    <div class="bg-gray-100 p-8 rounded-xl shadow-lg w-[600px] mt-10">
-        <h2 class="text-2xl font-bold mb-4 text-center">게시글 수정</h2>
-        
-        <form method="POST" action="{{ url_for('edit_post', post_id=post.id) }}" class="flex flex-col items-center">
-            <input 
-                type="text" 
-                name="title" 
-                class="w-full p-3 border border-green-700 rounded-xl mb-10" 
-                required 
-                value="{{ post.title }}"
-            >
+  <div class="bg-gray-100 p-8 rounded-xl shadow-lg w-[600px] mt-10">
+    <h2 class="text-2xl font-bold mb-4 text-center">게시글 수정</h2>
+    
+    <form method="POST" action="{{ url_for('edit_post', post_id=post.id) }}" class="flex flex-col items-center">
+      <!-- id="title" 속성을 추가 -->
+      <input 
+        type="text" 
+        id="title" 
+        name="title" 
+        class="w-full p-3 border border-green-700 rounded-xl mb-2" 
+        required 
+        value="{{ post.title }}"
+      >
+      <!-- 경고 메시지용 요소 (초기엔 숨김 처리) -->
+      <p id="titleWarning" class="text-red-500 text-sm mb-10" style="display: none;">
+        제목은 30자를 초과할 수 없습니다.
+      </p>
+      <textarea 
+        name="content" 
+        class="w-full p-3 border border-green-700 rounded-xl mb-4 h-80" 
+        required
+      >{{ post.content }}</textarea>
 
-            <textarea 
-                name="content" 
-                class="w-full p-3 border border-green-700 rounded-xl mb-4 h-80" 
-                required
-            >{{ post.content }}</textarea>
+      <button 
+        type="submit" 
+        class="w-1/4 bg-[#38773E] text-white p-3 rounded-xl hover:bg-green-700"
+      >
+        수정
+      </button>
+    </form>
 
-            <button 
-                type="submit" 
-                class="w-1/4 bg-[#38773E] text-white p-3 rounded-xl hover:bg-green-700"
-            >
-                수정
-            </button>
-        </form>
+    <form method="POST"
+          action="{{ url_for('delete_post', post_id=post.id) }}"
+          class="flex flex-col items-center mt-4"
+          onsubmit="return confirm('정말 삭제하시겠습니까?');">
+      
+      <button 
+        type="submit" 
+        class="w-1/4 bg-red-600 text-white p-3 rounded-xl hover:bg-red-700"
+      >
+        삭제
+      </button>
+    </form>
+    
+    <p id="message" class="mt-4 text-center text-red-500 hidden"></p>
+  </div>
 
-        <form method="POST"
-              action="{{ url_for('delete_post', post_id=post.id) }}"
-              class="flex flex-col items-center mt-4"
-              onsubmit="return confirm('정말 삭제하시겠습니까?');">
-            
-            <button 
-                type="submit" 
-                class="w-1/4 bg-red-600 text-white p-3 rounded-xl hover:bg-red-700"
-            >
-                삭제
-            </button>
-        </form>
-        
-        <p id="message" class="mt-4 text-center text-red-500 hidden"></p>
+  <div class="w-full h-[50px] bg-[#38773E] flex justify-between items-center px-10 fixed bottom-0 left-0">
+    <div class="text-white text-xl font-bold flex items-center space-x-2">
+      <i class="fas fa-dumbbell"></i>
+      <span>오운완</span>
     </div>
-
-    <div class="w-full h-[50px] bg-[#38773E] flex justify-between items-center px-10 fixed bottom-0 left-0">
-        <div class="text-white text-xl font-bold flex items-center space-x-2">
-            <i class="fas fa-dumbbell"></i>
-            <span>오운완</span>
+    <div class="flex items-center space-x-6">
+      <div class="relative">
+        <img src="../../static/images/notion_logo.png" alt="Notion" class="w-8 h-8 cursor-pointer" id="notionIcon">
+        <div id="notionDropdown" class="absolute right-0 hidden bg-white text-black p-2 mt-2 rounded-lg shadow-lg">
+          <a href="https://www.notion.so" class="block px-4 py-2">Notion</a>
         </div>
-        <div class="flex items-center space-x-6">
-            <div class="relative">
-                <img src="../../static/images/notion_logo.png" alt="Notion" class="w-8 h-8 cursor-pointer" id="notionIcon">
-                <div id="notionDropdown" class="absolute right-0 hidden bg-white text-black p-2 mt-2 rounded-lg shadow-lg">
-                    <a href="https://www.notion.so" class="block px-4 py-2">Notion</a>
-                </div>
-            </div>
+      </div>
 
-            <div class="relative">
-                <i class="fab fa-github text-white text-3xl cursor-pointer" id="githubIcon"></i>
-                <div id="githubDropdown" class="absolute right-0 hidden bg-white text-black p-2 mt-2 rounded-lg shadow-lg">
-                    <a href="https://github.com" class="block px-4 py-2">GitHub</a>
-                </div>
-            </div>
+      <div class="relative">
+        <i class="fab fa-github text-white text-3xl cursor-pointer" id="githubIcon"></i>
+        <div id="githubDropdown" class="absolute right-0 hidden bg-white text-black p-2 mt-2 rounded-lg shadow-lg">
+          <a href="https://github.com" class="block px-4 py-2">GitHub</a>
         </div>
+      </div>
     </div>
+  </div>
 
-    <script>
-        // 로그아웃 버튼 (예시 JS)
-        document.getElementById("logoutBtn").addEventListener("click", function(e) {
-            // 필요 시 localStorage 토큰 제거 등 로직...
-            // 그 후 /logout으로 이동
-        });
+  <script>
+    // 제목 길이 체크: 30자 초과 시 경고 메시지 표시 및 입력 제한
+    document.getElementById("title").addEventListener("input", function() {
+      var title = document.getElementById("title").value;
+      var warning = document.getElementById("titleWarning");
 
-        // 수정 완료 시 alert 표시 및 페이지 리다이렉트
-        window.onload = function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.has('success')) {
-                alert("수정이 완료되었습니다."); // 수정 완료 메시지
-                window.location.href= "/board";
-            }
-        };
-    </script>
+      if (title.length > 30) {
+        warning.style.display = "block";
+        // 30자를 초과하는 부분은 자르기
+        document.getElementById("title").value = title.substring(0, 30);
+      } else {
+        warning.style.display = "none";
+      }
+    });
+
+    // 로그아웃 버튼 예시
+    document.getElementById("logoutBtn").addEventListener("click", function(e) {
+      // 예시: 토큰 제거 등의 로직 후 로그아웃 처리
+    });
+
+    // 수정 완료 시 alert 표시 및 페이지 리다이렉트
+    window.onload = function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.has('success')) {
+        alert("수정이 완료되었습니다.");
+        window.location.href = "/board";
+      }
+    };
+  </script>
 </body>
 </html>

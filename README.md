@@ -48,7 +48,6 @@ Slack: https://w1710027293-p6w738751.slack.com/archives/C08GP07DK9V
 
 ## 기능명세서
 <img width="1744" alt="Image" src="https://github.com/user-attachments/assets/39423e46-6e5b-4c1f-807f-8307fb5edade" />
-[오운완 기능명세서.xlsx](%E1%84%8B%E1%85%A9%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%8B%E1%85%AA%E1%86%AB_%E1%84%80%E1%85%B5%E1%84%82%E1%85%B3%E1%86%BC%E1%84%86%E1%85%A7%E1%86%BC%E1%84%89%E1%85%A6%E1%84%89%E1%85%A5.xlsx)
 
 - 추가 희망 및 기능
     - 게시판 대댓글 기능
